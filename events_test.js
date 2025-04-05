@@ -124,8 +124,8 @@ document.addEventListener("DOMContentLoaded", function() {
             eventEntity.setAttribute('position', '0 1.5 -3');
         } else {
             // Show marker (geo-located view)
-            text.setAttribute('visible', 'false');
-            marker.setAttribute('visible', 'true');
+            text.setAttribute('visible', false);
+            marker.setAttribute('visible', true);
             
             // Return to original GPS position
             const eventData = events.find(e => e.id === eventId);
