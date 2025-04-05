@@ -5,9 +5,8 @@ AFRAME.registerComponent("arrow-pointer", {
   },
 
   tick: function () {
-    if (!this.cameraEl) return;
+    if (!this.cameraEl || this.arrowEl.getAttribute('visible') === false) return;
 
-    // Find the visible event text (only one should be visible at a time)
     const activeText = document.querySelector('.event-text[visible="true"]');
     if (!activeText) return;
 
@@ -24,5 +23,5 @@ AFRAME.registerComponent("arrow-pointer", {
     const angleDeg = (180 / Math.PI) * angleRad - 90;
 
     this.arrowEl.setAttribute("rotation", { x: 0, y: 0, z: angleDeg });
-  },
+  }
 });
