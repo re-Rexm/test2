@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const baseLng = -84.068553;
     
     // Distance in degrees 
-    const offset = 0.0004;
+    const offset = 0.0002;
     
     // Define 4 events at cardinal directions
     const events = [
