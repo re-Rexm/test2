@@ -4,19 +4,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
       .event-text {
-        background-color: rgba(0,0,0,0.7);
+        background-color: rgba(0, 0, 0, 0.7);
         padding: 0.5em;
         border-radius: 0.5em;
       }
-      a-box {
-        cursor: pointer;
-      }
+      a-box,
       a-text {
         cursor: pointer;
       }
       body {
         margin: 0;
         overflow: hidden;
+      }
+      a-scene {
+        touch-action: manipulation;
       }
     </style>
     <title>AR Campus Events</title>
@@ -34,6 +35,8 @@
       arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; maxDetectionRate: 30;"
       renderer="antialias: true; alpha: true; precision: mediump;">
       
+      <a-light type="ambient" color="#FFFFFF"></a-light>
+
       <a-camera id="cam" gps-camera rotation-reader>
         <a-entity id="userPOV">
           <a-text
@@ -46,17 +49,14 @@
             position="0 -0.8 -1.5"
             visible="false">
           </a-text>
-          
+
           <a-entity
             arrow-pointer
             id="arrow"
             scale="0.07 0.07 0.07"
             position="0 -0.2 -0.5"
             visible="false">
-            <a-triangle
-              position="0 1.7 -3"
-              color="yellow"
-              depth="0.1">
+            <a-triangle position="0 1.7 -3" color="yellow" depth="0.1">
               <a-box
                 scale="0.2 0.8 0.4"
                 depth="0.1"
