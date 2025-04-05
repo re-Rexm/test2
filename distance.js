@@ -5,7 +5,7 @@ AFRAME.registerComponent("distance-calc", {
   },
 
   tick: function () {
-    if (!this.cameraEl) return;
+    if (!this.cameraEl || this.arrowText.getAttribute('visible') === false) return;
 
     const activeText = document.querySelector('.event-text[visible="true"]');
     if (!activeText) return;
@@ -19,9 +19,9 @@ AFRAME.registerComponent("distance-calc", {
     const cameraPos = new THREE.Vector3();
     this.cameraEl.object3D.getWorldPosition(cameraPos);
 
-    let dist = cameraPos.manhattanDistanceTo(targetWorldPos).toFixed(2);
+    let dist = cameraPos.distanceTo(targetWorldPos).toFixed(2);
     const distTxt = `Your event is this way.\nDistance: ${dist}m`;
 
     this.arrowText.setAttribute("value", distTxt);
-  },
+  }
 });
