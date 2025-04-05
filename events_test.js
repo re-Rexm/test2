@@ -1,4 +1,3 @@
-// events.js
 document.addEventListener("DOMContentLoaded", function() {
     // Base coordinates (Wright State University)
     const baseLat = 39.786495;
@@ -13,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
             id: "north-event",
             name: "SPRING FOOD FESTIVAL",
             position: {
-                latitude: baseLat + offset, // North
+                latitude: baseLat + offset,
                 longitude: baseLng
             },
             color: "#4CAF50",
@@ -23,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function() {
             id: "south-event",
             name: "DANCE PARTY",
             position: {
-                latitude: baseLat - offset, // South
+                latitude: baseLat - offset,
                 longitude: baseLng
             },
             color: "#9C27B0",
@@ -34,7 +33,7 @@ document.addEventListener("DOMContentLoaded", function() {
             name: "MOVIE NIGHT",
             position: {
                 latitude: baseLat,
-                longitude: baseLng + offset // East
+                longitude: baseLng + offset
             },
             color: "#2196F3",
             description: "Outdoor cinema!\n7PM-11PM\nMovie: Avengers Endgame"
@@ -44,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function() {
             name: "ICE CREAM PARTY",
             position: {
                 latitude: baseLat,
-                longitude: baseLng - offset // West
+                longitude: baseLng - offset
             },
             color: "#FF9800",
             description: "Free ice cream!\n2PM-5PM\nFlavors: 10+ varieties"
@@ -61,23 +60,24 @@ document.addEventListener("DOMContentLoaded", function() {
             // Create container entity
             const eventEntity = document.createElement('a-entity');
             eventEntity.setAttribute('id', event.id);
-            eventEntity.setAttribute('gps-new-entity-place', {
+            eventEntity.setAttribute('gps-entity-place', {
                 latitude: event.position.latitude,
                 longitude: event.position.longitude
             });
             eventEntity.setAttribute('class', 'event-entity');
 
-            // Create visual marker (box) - initially visible
+            // Create visual marker (box)
             const marker = document.createElement('a-box');
             marker.setAttribute('class', 'event-marker');
             marker.setAttribute('color', event.color);
             marker.setAttribute('scale', '5 5 5');
             marker.setAttribute('position', '0 0 0');
-            marker.setAttribute('look-at', '[gps-new-camera]');
+            marker.setAttribute('look-at', '[gps-camera]');
             marker.setAttribute('data-event-id', event.id);
+            marker.setAttribute('visible', true);
             eventEntity.appendChild(marker);
 
-            // Create text label - initially hidden
+            // Create text label
             const text = document.createElement('a-text');
             text.setAttribute('class', 'event-text');
             text.setAttribute('value', `${event.name}\n\n${event.description}`);
@@ -86,54 +86,64 @@ document.addEventListener("DOMContentLoaded", function() {
             text.setAttribute('width', 15);
             text.setAttribute('position', '0 2 0');
             text.setAttribute('scale', '2 2 2');
-            text.setAttribute('visible', 'false');
-            text.setAttribute('look-at', '[gps-new-camera]');
+            text.setAttribute('visible', false);
+            text.setAttribute('look-at', '[gps-camera]');
             text.setAttribute('data-event-id', event.id);
             eventEntity.appendChild(text);
 
-            // Add click handler to both elements
-            marker.addEventListener('click', () => toggleEventDisplay(event.id));
-            text.addEventListener('click', () => toggleEventDisplay(event.id));
+            // Add click handlers
+            marker.addEventListener('click', function() {
+                console.log('Marker clicked:', event.id);
+                toggleEventDisplay(event.id);
+            });
+            text.addEventListener('click', function() {
+                console.log('Text clicked:', event.id);
+                toggleEventDisplay(event.id);
+            });
 
-            // Add to scene
             scene.appendChild(eventEntity);
         });
-
-        // Update arrow text
-        const arrowText = document.getElementById('arrowTxt');
-        if (arrowText) {
-            arrowText.setAttribute('value', 'Look around for colored boxes\nTap to see event details');
-        }
     });
 
-    // Toggle between marker and text
     function toggleEventDisplay(eventId) {
         const eventEntity = document.getElementById(eventId);
         if (!eventEntity) return;
 
         const marker = eventEntity.querySelector('.event-marker');
         const text = eventEntity.querySelector('.event-text');
+        const arrow = document.getElementById('arrow');
+        const arrowText = document.getElementById('arrowTxt');
         
-        if (marker.getAttribute('visible') !== 'false') {
-            // Show text (close-up view)
-            marker.setAttribute('visible', 'false');
-            text.setAttribute('visible', 'true');
-            
-            // Move text closer to camera temporarily
-            eventEntity.removeAttribute('gps-new-entity-place');
+        if (marker.getAttribute('visible') !== false) {
+            // Show text view
+            marker.setAttribute('visible', false);
+            text.setAttribute('visible', true);
+            eventEntity.removeAttribute('gps-entity-place');
             eventEntity.setAttribute('position', '0 1.5 -3');
+            
+            // Show arrow and text
+            if (arrow && arrowText) {
+                arrow.setAttribute('visible', true);
+                arrowText.setAttribute('visible', true);
+            }
         } else {
-            // Show marker (geo-located view)
+            // Show marker view
             text.setAttribute('visible', false);
             marker.setAttribute('visible', true);
             
-            // Return to original GPS position
+            // Return to GPS position
             const eventData = events.find(e => e.id === eventId);
             if (eventData) {
-                eventEntity.setAttribute('gps-new-entity-place', {
+                eventEntity.setAttribute('gps-entity-place', {
                     latitude: eventData.position.latitude,
                     longitude: eventData.position.longitude
                 });
+            }
+            
+            // Hide arrow and text
+            if (arrow && arrowText) {
+                arrow.setAttribute('visible', false);
+                arrowText.setAttribute('visible', false);
             }
         }
     }
