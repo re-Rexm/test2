@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
       .event-text {
         background-color: rgba(0,0,0,0.7);
@@ -13,15 +14,15 @@
       a-text {
         cursor: pointer;
       }
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
     </style>
-    <title>AR.js A-Frame Location-based</title>
-    
-    <!-- Scripts for Dependencies -->
+    <title>AR Campus Events</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
-    
-    <!-- Custom Scripts -->
     <script src="events_test.js"></script>
     <script src="arrow.js"></script>
     <script src="distance.js"></script>
@@ -29,41 +30,38 @@
 
   <body>
     <a-scene
-      vr-mode-ui="enabled: false" 
-      arjs="sourceType: webcam; debugUIEnabled: false" 
-      renderer="antialias: true; alpha: true">
-    
-      <a-camera id="cam" gps-camera>
-        <!-- Arrow Entity will point to Event entity -->
+      vr-mode-ui="enabled: false"
+      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono; maxDetectionRate: 30;"
+      renderer="antialias: true; alpha: true; precision: mediump;">
+      
+      <a-camera id="cam" gps-camera rotation-reader>
         <a-entity id="userPOV">
           <a-text
             distance-calc
             id="arrowTxt"
-            value="Look around for colored boxes\nTap to see event details" 
-            width="2" 
-            align="center" 
-            color="white" 
-            position="0 -.93 -2.7"
+            value="Look around for colored boxes\nTap to see event details"
+            width="2.5"
+            align="center"
+            color="white"
+            position="0 -0.8 -1.5"
             visible="false">
           </a-text>
-        
+          
           <a-entity
             arrow-pointer
             id="arrow"
-            scale=".07 .07 .07"
-            position="0 -.2 -.5" 
-            light="type: hemisphere; intensity: 2.0"
+            scale="0.07 0.07 0.07"
+            position="0 -0.2 -0.5"
             visible="false">
             <a-triangle
-              position="0 1.7 -3" 
+              position="0 1.7 -3"
               color="yellow"
-              depth=".1">
+              depth="0.1">
               <a-box
-                scale=".2 .8 .4" 
-                depth=".1" 
-                position="0 -.89 0" 
-                color="yellow" 
-                shadow="receive: false">
+                scale="0.2 0.8 0.4"
+                depth="0.1"
+                position="0 -0.89 0"
+                color="yellow">
               </a-box>
             </a-triangle>
           </a-entity>
