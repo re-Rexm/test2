@@ -1,9 +1,10 @@
 AFRAME.registerComponent('clickable', {
   init: function () {
-    this.el.addEventListener('click', () => this.el.emit('click'));
+    const handleClick = () => this.el.emit('click');
+    this.el.addEventListener('click', handleClick);
     this.el.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      this.el.emit('click');
+      handleClick();
     });
   }
 });
@@ -47,6 +48,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const scene = document.querySelector('a-scene');
   if (!scene) return;
 
+  // Add a global state to track which event is currently active
+  let activeEventId = null;
+
   scene.addEventListener('loaded', function () {
     events.forEach(event => {
       const eventEntity = document.createElement('a-entity');
@@ -55,10 +59,16 @@ document.addEventListener("DOMContentLoaded", function () {
         latitude: event.position.latitude,
         longitude: event.position.longitude
       });
+      // Store the original gps position for later reference
+      eventEntity.originalGPS = {
+        latitude: event.position.latitude,
+        longitude: event.position.longitude
+      };
 
+      // Create marker with proper color
       const marker = document.createElement('a-box');
       marker.setAttribute('class', 'event-marker');
-      marker.setAttribute('material', `shader: flat; color: ${event.color}`);
+      marker.setAttribute('material', `color: ${event.color}; shader: flat`);
       marker.setAttribute('scale', '5 5 5');
       marker.setAttribute('position', '0 1.5 0');
       marker.setAttribute('look-at', '[gps-camera]');
@@ -66,6 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
       marker.setAttribute('visible', true);
       eventEntity.appendChild(marker);
 
+      // Create text label - initially hidden
       const text = document.createElement('a-text');
       text.setAttribute('class', 'event-text');
       text.setAttribute('value', `${event.name}\n\n${event.description}`);
@@ -79,7 +90,8 @@ document.addEventListener("DOMContentLoaded", function () {
       text.setAttribute('clickable', '');
       eventEntity.appendChild(text);
 
-      const handleClick = () => handleEventClick(event.id);
+      // Add event listeners
+      const handleClick = () => toggleEventDisplay(event.id);
       marker.addEventListener('click', handleClick);
       text.addEventListener('click', handleClick);
 
@@ -87,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  function handleEventClick(eventId) {
+  function toggleEventDisplay(eventId) {
     const eventEntity = document.getElementById(eventId);
     if (!eventEntity) return;
 
@@ -96,36 +108,87 @@ document.addEventListener("DOMContentLoaded", function () {
     const arrow = document.getElementById('arrow');
     const arrowText = document.getElementById('arrowTxt');
 
-    const isMarkerVisible = marker.getAttribute('visible');
+    // Check if we're showing the marker currently
+    const isMarkerVisible = marker.getAttribute('visible') !== false;
+
+    // If we're showing a different event's details already, revert it to marker first
+    if (activeEventId && activeEventId !== eventId) {
+      const activeEvent = document.getElementById(activeEventId);
+      if (activeEvent) {
+        resetEventToMarker(activeEvent);
+      }
+    }
 
     if (isMarkerVisible) {
+      // Switch to text view
       marker.setAttribute('visible', false);
       text.setAttribute('visible', true);
-
+      
+      // Save position for arrow to point to
+      const camera = document.querySelector('a-camera');
+      const userPOV = document.getElementById('userPOV');
+      
+      // Remove the GPS component temporarily
+      const originalGPS = {
+        latitude: eventEntity.getAttribute('gps-entity-place').latitude,
+        longitude: eventEntity.getAttribute('gps-entity-place').longitude
+      };
       eventEntity.removeAttribute('gps-entity-place');
-      eventEntity.setAttribute('position', '0 1.5 -3');
-
+      
+      // Position the text in front of the camera at a fixed distance
+      const distance = 5; // 5 meters away
+      const textPosition = new THREE.Vector3(0, 0, -distance);
+      camera.object3D.localToWorld(textPosition);
+      
+      // Set position directly
+      eventEntity.setAttribute('position', {
+        x: textPosition.x,
+        y: textPosition.y,
+        z: textPosition.z
+      });
+      
+      // Store data for restoration
+      eventEntity.originalGPS = originalGPS;
+      
+      // Update active event tracking
+      activeEventId = eventId;
+      
+      // Show arrow and text
       if (arrow && arrowText) {
         arrow.setAttribute('visible', true);
         arrowText.setAttribute('visible', true);
       }
     } else {
-      text.setAttribute('visible', false);
-      marker.setAttribute('visible', true);
-
-      const eventData = events.find(e => e.id === eventId);
-      if (eventData) {
-        eventEntity.removeAttribute('position');
-        eventEntity.setAttribute('gps-entity-place', {
-          latitude: eventData.position.latitude,
-          longitude: eventData.position.longitude
-        });
-      }
-
-      if (arrow && arrowText) {
-        arrow.setAttribute('visible', false);
-        arrowText.setAttribute('visible', false);
-      }
+      resetEventToMarker(eventEntity);
+      activeEventId = null;
+    }
+  }
+  
+  function resetEventToMarker(eventEntity) {
+    const marker = eventEntity.querySelector('.event-marker');
+    const text = eventEntity.querySelector('.event-text');
+    const arrow = document.getElementById('arrow');
+    const arrowText = document.getElementById('arrowTxt');
+    
+    // Switch back to marker view
+    text.setAttribute('visible', false);
+    marker.setAttribute('visible', true);
+    
+    // Remove position attribute first to avoid conflicts
+    eventEntity.removeAttribute('position');
+    
+    // Restore GPS position
+    if (eventEntity.originalGPS) {
+      eventEntity.setAttribute('gps-entity-place', {
+        latitude: eventEntity.originalGPS.latitude,
+        longitude: eventEntity.originalGPS.longitude
+      });
+    }
+    
+    // Hide arrow and text
+    if (arrow && arrowText) {
+      arrow.setAttribute('visible', false);
+      arrowText.setAttribute('visible', false);
     }
   }
 });
