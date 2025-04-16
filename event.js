@@ -90,105 +90,117 @@ document.addEventListener("DOMContentLoaded", function () {
       text.setAttribute('clickable', '');
       eventEntity.appendChild(text);
 
-      // Add event listeners
-      const handleClick = () => toggleEventDisplay(event.id);
-      marker.addEventListener('click', handleClick);
-      text.addEventListener('click', handleClick);
+      // Add event listeners for both marker and text
+      marker.addEventListener('click', function() {
+        showEventDetails(event.id);
+      });
+      
+      text.addEventListener('click', function() {
+        hideEventDetails();
+      });
 
       scene.appendChild(eventEntity);
     });
   });
 
-  function toggleEventDisplay(eventId) {
-    const eventEntity = document.getElementById(eventId);
-    if (!eventEntity) return;
-
-    const marker = eventEntity.querySelector('.event-marker');
-    const text = eventEntity.querySelector('.event-text');
-    const arrow = document.getElementById('arrow');
-    const arrowText = document.getElementById('arrowTxt');
-
-    // Check if we're showing the marker currently
-    const isMarkerVisible = marker.getAttribute('visible') !== false;
-
-    // If we're showing a different event's details already, revert it to marker first
-    if (activeEventId && activeEventId !== eventId) {
-      const activeEvent = document.getElementById(activeEventId);
-      if (activeEvent) {
-        resetEventToMarker(activeEvent);
+  // Function to show event details
+  function showEventDetails(eventId) {
+    console.log("showEventDetails called for", eventId);
+    
+    // Hide all event entities except the one clicked
+    events.forEach(event => {
+      const entity = document.getElementById(event.id);
+      if (!entity) return;
+      
+      if (event.id !== eventId) {
+        // Hide other event entities
+        entity.setAttribute('visible', false);
+      } else {
+        // Show this event's text and hide its marker
+        const marker = entity.querySelector('.event-marker');
+        const text = entity.querySelector('.event-text');
+        
+        if (marker) marker.setAttribute('visible', false);
+        if (text) text.setAttribute('visible', true);
+        
+        // Remove GPS tracking and position in front of camera
+        const camera = document.querySelector('a-camera');
+        
+        // Store original position data if not already stored
+        if (!entity.originalGPS) {
+          entity.originalGPS = {
+            latitude: entity.getAttribute('gps-entity-place').latitude,
+            longitude: entity.getAttribute('gps-entity-place').longitude
+          };
+        }
+        
+        // Remove GPS component
+        entity.removeAttribute('gps-entity-place');
+        
+        // Position text in front of camera
+        const distance = 5; // 5 meters
+        const cameraPos = new THREE.Vector3();
+        const cameraDir = new THREE.Vector3();
+        
+        camera.object3D.getWorldPosition(cameraPos);
+        camera.object3D.getWorldDirection(cameraDir);
+        
+        const textPos = cameraPos.clone().add(cameraDir.multiplyScalar(distance));
+        
+        entity.setAttribute('position', {
+          x: textPos.x,
+          y: textPos.y, 
+          z: textPos.z
+        });
+        
+        // Update active event
+        activeEventId = eventId;
+        
+        // Show arrow
+        const arrow = document.getElementById('arrow');
+        const arrowText = document.getElementById('arrowTxt');
+        
+        if (arrow) arrow.setAttribute('visible', true);
+        if (arrowText) arrowText.setAttribute('visible', true);
       }
-    }
-
-    if (isMarkerVisible) {
-      // Switch to text view
-      marker.setAttribute('visible', false);
-      text.setAttribute('visible', true);
-      
-      // Save position for arrow to point to
-      const camera = document.querySelector('a-camera');
-      const userPOV = document.getElementById('userPOV');
-      
-      // Remove the GPS component temporarily
-      const originalGPS = {
-        latitude: eventEntity.getAttribute('gps-entity-place').latitude,
-        longitude: eventEntity.getAttribute('gps-entity-place').longitude
-      };
-      eventEntity.removeAttribute('gps-entity-place');
-      
-      // Position the text in front of the camera at a fixed distance
-      const distance = 5; // 5 meters away
-      const textPosition = new THREE.Vector3(0, 0, -distance);
-      camera.object3D.localToWorld(textPosition);
-      
-      // Set position directly
-      eventEntity.setAttribute('position', {
-        x: textPosition.x,
-        y: textPosition.y,
-        z: textPosition.z
-      });
-      
-      // Store data for restoration
-      eventEntity.originalGPS = originalGPS;
-      
-      // Update active event tracking
-      activeEventId = eventId;
-      
-      // Show arrow and text
-      if (arrow && arrowText) {
-        arrow.setAttribute('visible', true);
-        arrowText.setAttribute('visible', true);
-      }
-    } else {
-      resetEventToMarker(eventEntity);
-      activeEventId = null;
-    }
+    });
   }
-  
-  function resetEventToMarker(eventEntity) {
-    const marker = eventEntity.querySelector('.event-marker');
-    const text = eventEntity.querySelector('.event-text');
+
+  // Function to hide event details and restore normal view
+  function hideEventDetails() {
+    console.log("hideEventDetails called");
+    
+    // Show all event entities
+    events.forEach(event => {
+      const entity = document.getElementById(event.id);
+      if (!entity) return;
+      
+      entity.setAttribute('visible', true);
+      
+      const marker = entity.querySelector('.event-marker');
+      const text = entity.querySelector('.event-text');
+      
+      if (marker) marker.setAttribute('visible', true);
+      if (text) text.setAttribute('visible', false);
+      
+      // Restore GPS position for the active event
+      if (event.id === activeEventId && entity.originalGPS) {
+        entity.removeAttribute('position');
+        entity.setAttribute('gps-entity-place', {
+          latitude: entity.originalGPS.latitude,
+          longitude: entity.originalGPS.longitude
+        });
+      }
+    });
+    
+    // Hide arrow
     const arrow = document.getElementById('arrow');
     const arrowText = document.getElementById('arrowTxt');
     
-    // Switch back to marker view
-    text.setAttribute('visible', false);
-    marker.setAttribute('visible', true);
+    if (arrow) arrow.setAttribute('visible', false);
+    if (arrowText) arrowText.setAttribute('visible', false);
     
-    // Remove position attribute first to avoid conflicts
-    eventEntity.removeAttribute('position');
-    
-    // Restore GPS position
-    if (eventEntity.originalGPS) {
-      eventEntity.setAttribute('gps-entity-place', {
-        latitude: eventEntity.originalGPS.latitude,
-        longitude: eventEntity.originalGPS.longitude
-      });
-    }
-    
-    // Hide arrow and text
-    if (arrow && arrowText) {
-      arrow.setAttribute('visible', false);
-      arrowText.setAttribute('visible', false);
-    }
+    // Clear active event
+    activeEventId = null;
   }
 });
