@@ -12,12 +12,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
 export async function getAllEvents() {
-  const eventsCol = collection(db, "events")
   try {
-    const snapshot = await getDocs(eventsCol)
-    return snapshot.docs.map(doc => doc.data())
-  } catch (err) {
-    console.error("Error fetching all events:", err)
+    const events = collection(db, "events")
+    const querySnapshot = await getDocs(events)
+    return querySnapshot.docs.map((doc) => doc.data())
+  } catch (error) {
+    console.error("Error getting all events:", error)
     return []
   }
 }
