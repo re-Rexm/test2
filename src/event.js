@@ -1,90 +1,64 @@
 // Event.js Script
-import { getEvents, getEventByTitle } from "./fetch-event.js";
+import { getEventByTitle, getAllEvents } from "./fetch-event.js"
 
-// This script handles both single event (via URL parameter) and multiple events display
 document.addEventListener("DOMContentLoaded", async function () {
-  const scene = document.querySelector("a-scene");
-  if (!scene) {
-    
-    return;
-  }
+  const scene = document.querySelector("a-scene")
+  if (!scene) return
 
-  
+  const urlParameter = new URLSearchParams(document.location.search)
+  const eventTitle = urlParameter.get("eventName")
+  const infoDisplay = document.getElementById("display-info-text")
+  const displayWindow = document.querySelector("#displayWindow")
 
-  // Get url parameter
-  const urlParameter = new URLSearchParams(document.location.search);
-  const eventTitle = urlParameter.get("eventName");
+  // Hide display window initially
+  displayWindow.object3D.visible = false
 
-  let events;
-  if (eventTitle) {
-    // If specific event requested, get just that one
-    const singleEvent = await getEventByTitle(eventTitle);
-    if (singleEvent) {
-      events = [singleEvent];
-    } else {
-      
-      events = await getEvents();
-      events = [events[Math.floor(Math.random() * events.length)]];
-    }
-  } else {
-    // No specific event requested, get all events
-    events = await getEvents();
-    if (events.length === 0) {
-      
-      return;
-    }
+  // Get all events
+  const allEvents = await getAllEvents()
+  if (!allEvents.length) return
+
+  // Get default event (from URL or random)
+  let defaultEvent = await getEventByTitle(eventTitle)
+  if (!defaultEvent && allEvents.length) {
+    defaultEvent = allEvents[Math.floor(Math.random() * allEvents.length)]
   }
 
   // Create event entities
-  const colors = ['blue', 'red', 'green', 'yellow', 'purple', 'orange'];
-  const eventEntities = [];
-  
-  events.forEach((event, index) => {
-    const color = colors[index % colors.length];
-    const eventId = `event-${index}`;
-    
-    // Create event entity
-    const eventEl = document.createElement('a-entity');
-    eventEl.setAttribute('id', eventId);
-    eventEl.setAttribute('class', 'clickable');
-    eventEl.setAttribute('click-display-info', '');
-    eventEl.setAttribute('rotation-tick', '');
-    eventEl.setAttribute('geometry', {
-      primitive: 'box',
+  allEvents.forEach((event, index) => {
+    const color = `hsl(${(index * 360) / allEvents.length}, 100%, 50%)`
+    const eventEl = document.createElement("a-entity")
+    eventEl.setAttribute("id", `event-${index}`)
+    eventEl.setAttribute("class", "clickable")
+    eventEl.setAttribute("click-display-info", "")
+    eventEl.setAttribute("rotation-tick", "")
+    eventEl.setAttribute("geometry", {
+      primitive: "box",
       width: 8,
       height: 8,
-      depth: 8
-    });
-    eventEl.setAttribute('material', { color });
-    eventEl.setAttribute('gps-new-entity-place', {
+      depth: 8,
+    })
+    eventEl.setAttribute("material", "color", color)
+    eventEl.setAttribute("gps-new-entity-place", {
       latitude: parseFloat(event.eventGeo.latitude),
-      longitude: parseFloat(event.eventGeo.longitude)
-    });
-    
-    // Store event data as component properties
-    eventEl.dataset.eventName = event.eventName;
-    eventEl.dataset.eventBldg = event.eventBldg;
-    eventEl.dataset.eventRm = event.eventRm;
-    eventEl.dataset.eventTime = event.eventTime.toDate().toLocaleString();
-    eventEl.dataset.originalColor = color;
-    
-    scene.appendChild(eventEl);
-    eventEntities.push(eventEl);
-  });
+      longitude: parseFloat(event.eventGeo.longitude),
+    })
+    eventEl.eventData = event
+    eventEl.originalColor = color
+    scene.appendChild(eventEl)
 
-  // Set the first event as the default target for arrow and distance
-  if (eventEntities.length > 0) {
-    setCurrentTarget(eventEntities[0]);
-  }
-});
+    // Set as active if it's the default event
+    if (event.eventName === defaultEvent.eventName) {
+      infoDisplay.setAttribute("value", getEventInfoText(event))
+      eventEl.setAttribute("material", "color", "white")
+      eventEl.isActive = true
+      displayWindow.object3D.visible = true
+    }
+  })
+})
 
-// Helper function to set the current target for arrow and distance components
-function setCurrentTarget(targetEl) {
-  const arrow = document.querySelector("#arrow");
-  const arrowTxt = document.querySelector("#arrowTxt");
-  
-  if (arrow && arrowTxt) {
-    arrow.setAttribute('arrow-pointer', 'targetEl', `#${targetEl.id}`);
-    arrowTxt.setAttribute('distance-calc', 'targetEl', `#${targetEl.id}`);
-  }
+function getEventInfoText(event) {
+  return `Name: ${event.eventName}
+    \nBldg: ${event.eventBldg} 
+    \nRm:  ${event.eventRm}
+    \nTime:  ${event.eventTime.toDate().toLocaleString()}`
 }
