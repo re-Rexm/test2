@@ -13,11 +13,11 @@ import {
 
 export async function getAllEvents() {
   try {
-    const events = collection(db, "events");
-    const querySnapshot = await getDocs(events);
-    return querySnapshot.docs.map((doc) => doc.data());
+    const events = collection(db, "events")
+    const querySnapshot = await getDocs(events)
+    return querySnapshot.docs.map((doc) => doc.data())
   } catch (error) {
-    console.error("Error getting all events:", error);
-    return [];
+    console.error("Error getting all events:", error)
+    return []
   }
 }

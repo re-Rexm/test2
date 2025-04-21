@@ -1,56 +1,85 @@
-import { getAllEvents } from "./fetch-event.js"; // Add a new method in fetch-event.js
+import { getAllEvents } from "./fetch-event.js"
 
 document.addEventListener("DOMContentLoaded", async function () {
-  const scene = document.querySelector("a-scene");
-  const infoDisplay = document.getElementById("display-info-text");
-  const displayWindow = document.querySelector("#displayWindow");
+  const scene = document.querySelector("a-scene")
+  const infoDisplay = document.getElementById("display-info-text")
+  const displayWindow = document.querySelector("#displayWindow")
 
-  // Get URL param
-  const urlParameter = new URLSearchParams(document.location.search);
-  const defaultEventTitle = urlParameter.get("eventName");
+  const urlParameter = new URLSearchParams(document.location.search)
+  const eventNameParam = urlParameter.get("eventName")
 
-  let activeTargetEl = null;
+  let activeTargetEl = null
+  const colorList = ["blue", "green", "red", "orange", "purple", "cyan", "magenta", "pink"]
 
-  // Fetch all events
-  const allEvents = await getAllEvents();
+  const allEvents = await getAllEvents()
 
   allEvents.forEach((event, index) => {
-    const eventEntity = document.createElement("a-entity");
-    eventEntity.setAttribute("id", `event-${index}`);
-    eventEntity.setAttribute("geometry", { primitive: "box", width: 8, height: 8, depth: 8 });
-    eventEntity.setAttribute("material", "color: blue");
+    const eventEntity = document.createElement("a-entity")
+    const eventColor = colorList[index % colorList.length] // rotate colors
+
+    eventEntity.setAttribute("id", `event-${index}`)
+    eventEntity.setAttribute("geometry", {
+      primitive: "box",
+      width: 8,
+      height: 8,
+      depth: 8,
+    })
+
+    eventEntity.setAttribute("material", `color: ${eventColor}`)
     eventEntity.setAttribute("gps-new-entity-place", {
       latitude: parseFloat(event.eventGeo.latitude),
       longitude: parseFloat(event.eventGeo.longitude),
-    });
-    eventEntity.setAttribute("rotation-tick", "");
-    eventEntity.setAttribute("click-display-info", "");
+    })
 
-    // Store event data for this entity
-    eventEntity.eventData = event;
+    eventEntity.setAttribute("rotation-tick", "")
+    eventEntity.setAttribute("click-display-info", "")
+    eventEntity.eventData = event
 
-    // Set default active target
-    if (event.eventName === defaultEventTitle) {
-      activeTargetEl = eventEntity;
+    // If it matches the eventName param, or no param & this is first event
+    const isDefaultTarget =
+      (eventNameParam && event.eventName === eventNameParam) ||
+      (!eventNameParam && index === 0)
+
+    if (isDefaultTarget) {
+      activeTargetEl = eventEntity
     }
 
-    // Click listener for switching arrow/distance target
+    // Click listener
     eventEntity.addEventListener("click", () => {
-      activeTargetEl = eventEntity;
-      displayWindow.object3D.visible = true;
+      activeTargetEl = eventEntity
+      displayWindow.object3D.visible = true
 
       infoDisplay.setAttribute(
         "value",
-        `Name: ${event.eventName}\nBldg: ${event.eventBldg}\nRm: ${event.eventRm}\nTime: ${event.eventTime.toDate().toLocaleString()}`
-      );
-    });
+        `Name: ${event.eventName}
+        \nBldg: ${event.eventBldg} 
+        \nRm:  ${event.eventRm}
+        \nTime:  ${event.eventTime.toDate().toLocaleString()}`
+      )
 
-    scene.appendChild(eventEntity);
-  });
+      // Update pointer components to track this
+      document.querySelector("#arrow").components["arrow-pointer"].setTarget(activeTargetEl)
+      document.querySelector("#arrowTxt").components["distance-calc"].setTarget(activeTargetEl)
+    })
 
-  // Wait a sec to make sure DOM is populated
+    scene.appendChild(eventEntity)
+  })
+
+  // Wait a bit before assigning the initial target
   setTimeout(() => {
-    document.querySelector("#arrow").components["arrow-pointer"].setTarget(activeTargetEl);
-    document.querySelector("#arrowTxt").components["distance-calc"].setTarget(activeTargetEl);
-  }, 2000);
-});
+    if (activeTargetEl) {
+      document.querySelector("#arrow").components["arrow-pointer"].setTarget(activeTargetEl)
+      document.querySelector("#arrowTxt").components["distance-calc"].setTarget(activeTargetEl)
+
+      const event = activeTargetEl.eventData
+      displayWindow.object3D.visible = true
+      infoDisplay.setAttribute(
+        "value",
+        `Name: ${event.eventName}
+        \nBldg: ${event.eventBldg} 
+        \nRm:  ${event.eventRm}
+        \nTime:  ${event.eventTime.toDate().toLocaleString()}`
+      )
+    }
+  }, 2000)
+})
