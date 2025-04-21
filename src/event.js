@@ -1,56 +1,90 @@
+// Event.js Script
+import { getEvents, getEventByTitle } from "./fetch-event.js";
+
+// This script handles both single event (via URL parameter) and multiple events display
 document.addEventListener("DOMContentLoaded", async function () {
   const scene = document.querySelector("a-scene");
-  const infoDisplay = document.getElementById("display-info-text");
-  const displayWindow = document.querySelector("#displayWindow");
+  if (!scene) {
+    
+    return;
+  }
 
+  
+
+  // Get url parameter
   const urlParameter = new URLSearchParams(document.location.search);
-  const eventNameParam = urlParameter.get("eventName");
+  const eventTitle = urlParameter.get("eventName");
 
-  let activeTargetEl = null;
-  const colorList = ["blue", "green", "red", "orange", "purple", "cyan", "magenta", "pink"];
+  let events;
+  if (eventTitle) {
+    // If specific event requested, get just that one
+    const singleEvent = await getEventByTitle(eventTitle);
+    if (singleEvent) {
+      events = [singleEvent];
+    } else {
+      
+      events = await getEvents();
+      events = [events[Math.floor(Math.random() * events.length)]];
+    }
+  } else {
+    // No specific event requested, get all events
+    events = await getEvents();
+    if (events.length === 0) {
+      
+      return;
+    }
+  }
 
-  const allEvents = await getAllEvents();
-
-  allEvents.forEach((event, index) => {
-    const eventEntity = document.createElement("a-entity");
-    const eventColor = colorList[index % colorList.length];
-
-    eventEntity.setAttribute("id", `event-${index}`);
-    eventEntity.setAttribute("geometry", {
-      primitive: "box",
+  // Create event entities
+  const colors = ['blue', 'red', 'green', 'yellow', 'purple', 'orange'];
+  const eventEntities = [];
+  
+  events.forEach((event, index) => {
+    const color = colors[index % colors.length];
+    const eventId = `event-${index}`;
+    
+    // Create event entity
+    const eventEl = document.createElement('a-entity');
+    eventEl.setAttribute('id', eventId);
+    eventEl.setAttribute('class', 'clickable');
+    eventEl.setAttribute('click-display-info', '');
+    eventEl.setAttribute('rotation-tick', '');
+    eventEl.setAttribute('geometry', {
+      primitive: 'box',
       width: 8,
       height: 8,
-      depth: 8,
+      depth: 8
     });
-
-    eventEntity.setAttribute("material", `color: ${eventColor}`);
-    eventEntity.setAttribute("data-original-color", eventColor); // Store original color
-    eventEntity.setAttribute("gps-new-entity-place", {
+    eventEl.setAttribute('material', { color });
+    eventEl.setAttribute('gps-new-entity-place', {
       latitude: parseFloat(event.eventGeo.latitude),
-      longitude: parseFloat(event.eventGeo.longitude),
+      longitude: parseFloat(event.eventGeo.longitude)
     });
-
-    eventEntity.setAttribute("rotation-tick", "");
-    eventEntity.setAttribute("click-display-info", "");
-    eventEntity.eventData = event;
-
-    // If it matches the eventName param, or no param & this is first event
-    const isDefaultTarget =
-      (eventNameParam && event.eventName === eventNameParam) ||
-      (!eventNameParam && index === 0);
-
-    if (isDefaultTarget) {
-      activeTargetEl = eventEntity;
-    }
-
-    scene.appendChild(eventEntity);
+    
+    // Store event data as component properties
+    eventEl.dataset.eventName = event.eventName;
+    eventEl.dataset.eventBldg = event.eventBldg;
+    eventEl.dataset.eventRm = event.eventRm;
+    eventEl.dataset.eventTime = event.eventTime.toDate().toLocaleString();
+    eventEl.dataset.originalColor = color;
+    
+    scene.appendChild(eventEl);
+    eventEntities.push(eventEl);
   });
 
-  // Set initial target after entities are created
-  setTimeout(() => {
-    if (activeTargetEl) {
-      // Simulate click on default target
-      activeTargetEl.components['click-display-info'].el.emit('click');
-    }
-  }, 2000);
+  // Set the first event as the default target for arrow and distance
+  if (eventEntities.length > 0) {
+    setCurrentTarget(eventEntities[0]);
+  }
 });
+
+// Helper function to set the current target for arrow and distance components
+function setCurrentTarget(targetEl) {
+  const arrow = document.querySelector("#arrow");
+  const arrowTxt = document.querySelector("#arrowTxt");
+  
+  if (arrow && arrowTxt) {
+    arrow.setAttribute('arrow-pointer', 'targetEl', `#${targetEl.id}`);
+    arrowTxt.setAttribute('distance-calc', 'targetEl', `#${targetEl.id}`);
+  }
+}

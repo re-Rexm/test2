@@ -1,37 +1,44 @@
 // interact.js
-// This componenet modifies an entity to do something when the user touches the screen location where the entity is displayed (i.e., user touches event box, box displays event information on screen, user touches again, event info goes away).
-
 AFRAME.registerComponent("click-display-info", {
   init: function () {
-    this.el.addEventListener('click', () => {
-      const event = this.el.eventData;
-      const displayWindow = document.querySelector("#displayWindow");
-      const infoDisplay = document.getElementById("display-info-text");
+    this.el.addEventListener("click", this.onClick.bind(this));
+    this.originalColor = this.el.getAttribute("material").color || "blue";
+    console.log(`The ${this.el.id} entity is clickable.`);
+  },
+
+  onClick: function () {
+    const window = document.querySelector("#displayWindow");
+    const infoDisplay = document.querySelector("#display-info-text");
+    const currentColor = this.el.getAttribute("material").color;
+
+    if (currentColor !== "white") {
+      // Show this event
+      this.el.setAttribute("material", "color", "white");
       
-      // Highlight this event (make it white) and reset others to their original color
-      document.querySelectorAll('[click-display-info]').forEach(entity => {
-        const originalColor = entity.getAttribute('data-original-color');
-        entity.setAttribute('material', 'color', originalColor);
-      });
-      
-      // Highlight the clicked entity
-      const originalColor = this.el.getAttribute('data-original-color');
-      this.el.setAttribute('material', 'color', 'white');
-      
-      // Update display
+      // Update display window with this event's info
       infoDisplay.setAttribute(
-        'value',
-        `Name: ${event.eventName}
-        \nBldg: ${event.eventBldg} 
-        \nRm:  ${event.eventRm}
-        \nTime:  ${event.eventTime.toDate().toLocaleString()}`
+        "value",
+        `Name: ${this.el.dataset.eventName}
+        \nBldg: ${this.el.dataset.eventBldg} 
+        \nRm:  ${this.el.dataset.eventRm}
+        \nTime:  ${this.el.dataset.eventTime}`
       );
       
-      displayWindow.object3D.visible = true;
+      // Make window visible
+      window.object3D.visible = true;
       
-      // Update arrow pointers
-      document.querySelector("#arrow").components["arrow-pointer"].setTarget(this.el);
-      document.querySelector("#arrowTxt").components["distance-calc"].setTarget(this.el);
-    });
+      // Update arrow and distance to point to this event
+      const arrow = document.querySelector("#arrow");
+      const arrowTxt = document.querySelector("#arrowTxt");
+      
+      if (arrow && arrowTxt) {
+        arrow.setAttribute('arrow-pointer', 'targetEl', `#${this.el.id}`);
+        arrowTxt.setAttribute('distance-calc', 'targetEl', `#${this.el.id}`);
+      }
+    } else {
+      // Hide this event
+      this.el.setAttribute("material", "color", this.originalColor);
+      window.object3D.visible = false;
+    }
   }
 });
