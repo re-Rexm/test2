@@ -1,58 +1,56 @@
-// Event.js Script
-import { getEventByTitle } from "./fetch-event.js";
-
-// This script performs two actions. The first is to parse the url parameter for the eventTitle variable. The second is to wait for the document to load, link scene and event entity to their respective variables, place event location via coordinates, and apply values to the display info window.
-
-// Get url parameter
-let urlParameter = new URLSearchParams(document.location.search)
+import { getAllEvents } from "./fetch-event.js"; // Add a new method in fetch-event.js
 
 document.addEventListener("DOMContentLoaded", async function () {
   const scene = document.querySelector("a-scene");
-  if (scene) {
-    console.log("event-js scene found!");
-    console.log("Scene load state: ", scene.hasLoaded);
+  const infoDisplay = document.getElementById("display-info-text");
+  const displayWindow = document.querySelector("#displayWindow");
 
-    const elementEvent = document.getElementById("event");
+  // Get URL param
+  const urlParameter = new URLSearchParams(document.location.search);
+  const defaultEventTitle = urlParameter.get("eventName");
 
-    if (elementEvent) {
-      console.log("Event entity found!");
-      const infoDisplay = document.getElementById("display-info-text");
+  let activeTargetEl = null;
 
-      // Set scale, primitive and color.
-      elementEvent.setAttribute("geometry", {
-        primitive: "box",
-        width: 8,
-        height: 8,
-        depth: 8,
-      });
+  // Fetch all events
+  const allEvents = await getAllEvents();
 
-      // Create search variable to match with firebase event
-      const eventTitle = urlParameter.get("eventName")|| "Luncheon";
-      const event = await getEventByTitle(eventTitle);
+  allEvents.forEach((event, index) => {
+    const eventEntity = document.createElement("a-entity");
+    eventEntity.setAttribute("id", `event-${index}`);
+    eventEntity.setAttribute("geometry", { primitive: "box", width: 8, height: 8, depth: 8 });
+    eventEntity.setAttribute("material", "color: blue");
+    eventEntity.setAttribute("gps-new-entity-place", {
+      latitude: parseFloat(event.eventGeo.latitude),
+      longitude: parseFloat(event.eventGeo.longitude),
+    });
+    eventEntity.setAttribute("rotation-tick", "");
+    eventEntity.setAttribute("click-display-info", "");
 
-      // Place entity at gps location using events geloc data from firebase
-      elementEvent.setAttribute("gps-new-entity-place", {
-        latitude: parseFloat(event.eventGeo.latitude),
-        longitude: parseFloat(event.eventGeo.longitude),
-      });
-      // Log position
-      console.log(
-        "Event Position:",
-        elementEvent.getAttribute("gps-new-entity-place")
-      );
+    // Store event data for this entity
+    eventEntity.eventData = event;
 
-      // Display values of event data from firebase
+    // Set default active target
+    if (event.eventName === defaultEventTitle) {
+      activeTargetEl = eventEntity;
+    }
+
+    // Click listener for switching arrow/distance target
+    eventEntity.addEventListener("click", () => {
+      activeTargetEl = eventEntity;
+      displayWindow.object3D.visible = true;
+
       infoDisplay.setAttribute(
         "value",
-        `Name: ${event.eventName}
-        \nBldg: ${event.eventBldg} 
-        \nRm:  ${event.eventRm}
-        \nTime:  ${event.eventTime.toDate().toLocaleString()}`
+        `Name: ${event.eventName}\nBldg: ${event.eventBldg}\nRm: ${event.eventRm}\nTime: ${event.eventTime.toDate().toLocaleString()}`
       );
-    } else {
-      console.error("Event entity not found!");
-    }
-  } else {
-    console.error("Scene element not found!");
-  }
+    });
+
+    scene.appendChild(eventEntity);
+  });
+
+  // Wait a sec to make sure DOM is populated
+  setTimeout(() => {
+    document.querySelector("#arrow").components["arrow-pointer"].setTarget(activeTargetEl);
+    document.querySelector("#arrowTxt").components["distance-calc"].setTarget(activeTargetEl);
+  }, 2000);
 });

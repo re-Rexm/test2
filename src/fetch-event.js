@@ -11,27 +11,13 @@ import {
   getDocs,
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
-export async function getEventByTitle(eventTitle) {
-  // Create collection from database and query against input
-  const events = collection(db, "events")
-  const qry = query(events, where("eventName", "==", eventTitle))
-
-  // Attempt to get results
+export async function getAllEvents() {
   try {
-    const querySnapshot = await getDocs(qry)
-
-    if (querySnapshot.empty) {
-      console.warn(`No event found with eventName ${eventTitle}`)
-      return null
-    }
-
-    // Create object to be returned for matching event
-    const doc = querySnapshot.docs[0]
-    const data = doc.data()
-
-    return data
+    const events = collection(db, "events");
+    const querySnapshot = await getDocs(events);
+    return querySnapshot.docs.map((doc) => doc.data());
   } catch (error) {
-    console.error("Error from getEventByTitle:", error)
-    return null
+    console.error("Error getting all events:", error);
+    return [];
   }
 }
