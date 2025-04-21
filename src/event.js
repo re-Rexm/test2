@@ -1,23 +1,26 @@
-import { getAllEvents } from "./fetch-event.js"
+import { getEventByTitle, getAllEvents } from "./fetch-event.js"
+
+let urlParameter = new URLSearchParams(document.location.search)
+const eventName = urlParameter.get("eventName")
 
 document.addEventListener("DOMContentLoaded", async function () {
   const scene = document.querySelector("a-scene")
-  const infoDisplay = document.getElementById("display-info-text")
+  const infoDisplay = document.querySelector("#display-info-text")
   const displayWindow = document.querySelector("#displayWindow")
+  const arrow = document.querySelector("#arrow")
+  const arrowText = document.querySelector("#arrowTxt")
 
-  const urlParameter = new URLSearchParams(document.location.search)
-  const eventNameParam = urlParameter.get("eventName")
+  let events = await getAllEvents()
 
-  let activeTargetEl = null
-  const colorList = ["blue", "green", "red", "orange", "purple", "cyan", "magenta", "pink"]
+  if (!events || events.length === 0) {
+    console.error("No events found.")
+    return
+  }
 
-  const allEvents = await getAllEvents()
+  let activeEvent = events.find(e => e.eventName === eventName) || events[0]
 
-  allEvents.forEach((event, index) => {
+  events.forEach((event, index) => {
     const eventEntity = document.createElement("a-entity")
-    const eventColor = colorList[index % colorList.length] // rotate colors
-
-    eventEntity.setAttribute("id", `event-${index}`)
     eventEntity.setAttribute("geometry", {
       primitive: "box",
       width: 8,
@@ -25,61 +28,55 @@ document.addEventListener("DOMContentLoaded", async function () {
       depth: 8,
     })
 
-    eventEntity.setAttribute("material", `color: ${eventColor}`)
+    eventEntity.setAttribute("material", "color", getColor(index))
+
     eventEntity.setAttribute("gps-new-entity-place", {
       latitude: parseFloat(event.eventGeo.latitude),
       longitude: parseFloat(event.eventGeo.longitude),
     })
 
     eventEntity.setAttribute("rotation-tick", "")
-    eventEntity.setAttribute("click-display-info", "")
-    eventEntity.eventData = event
+    eventEntity.classList.add("clickable")
 
-    // If it matches the eventName param, or no param & this is first event
-    const isDefaultTarget =
-      (eventNameParam && event.eventName === eventNameParam) ||
-      (!eventNameParam && index === 0)
-
-    if (isDefaultTarget) {
-      activeTargetEl = eventEntity
-    }
-
-    // Click listener
+    // Attach event-specific click logic
     eventEntity.addEventListener("click", () => {
-      activeTargetEl = eventEntity
-      displayWindow.object3D.visible = true
+      console.log(`Clicked: ${event.eventName}`)
 
+      // Update info window
       infoDisplay.setAttribute(
         "value",
         `Name: ${event.eventName}
         \nBldg: ${event.eventBldg} 
-        \nRm:  ${event.eventRm}
-        \nTime:  ${event.eventTime.toDate().toLocaleString()}`
+        \nRm: ${event.eventRm}
+        \nTime: ${event.eventTime.toDate().toLocaleString()}`
       )
+      displayWindow.object3D.visible = true
 
-      // Update pointer components to track this
-      document.querySelector("#arrow").components["arrow-pointer"].setTarget(activeTargetEl)
-      document.querySelector("#arrowTxt").components["distance-calc"].setTarget(activeTargetEl)
+      // Point arrow and distance to this
+      arrow.components["arrow-pointer"].setTarget(eventEntity)
+      arrowText.components["distance-calc"].setTarget(eventEntity)
     })
 
     scene.appendChild(eventEntity)
-  })
 
-  // Wait a bit before assigning the initial target
-  setTimeout(() => {
-    if (activeTargetEl) {
-      document.querySelector("#arrow").components["arrow-pointer"].setTarget(activeTargetEl)
-      document.querySelector("#arrowTxt").components["distance-calc"].setTarget(activeTargetEl)
+    // Set initial target if this is the active one
+    if (event.eventName === activeEvent.eventName) {
+      arrow.components["arrow-pointer"].setTarget(eventEntity)
+      arrowText.components["distance-calc"].setTarget(eventEntity)
 
-      const event = activeTargetEl.eventData
-      displayWindow.object3D.visible = true
       infoDisplay.setAttribute(
         "value",
         `Name: ${event.eventName}
         \nBldg: ${event.eventBldg} 
-        \nRm:  ${event.eventRm}
-        \nTime:  ${event.eventTime.toDate().toLocaleString()}`
+        \nRm: ${event.eventRm}
+        \nTime: ${event.eventTime.toDate().toLocaleString()}`
       )
     }
-  }, 2000)
+  })
 })
+
+// Utility: Cycle colors
+function getColor(index) {
+  const colors = ["blue", "green", "orange", "red", "purple", "yellow"]
+  return colors[index % colors.length]
+}
