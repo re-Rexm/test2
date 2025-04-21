@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       });
 
       // Create search variable to match with firebase event
-      const eventTitle = urlParameter.get("eventName");
+      const eventTitle = urlParameter.get("eventName")|| "Luncheon";
       const event = await getEventByTitle(eventTitle);
 
       // Place entity at gps location using events geloc data from firebase
