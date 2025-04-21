@@ -2,33 +2,19 @@
 <html>
   <head>
     <title>AR.js A-Frame Location-based</title>
-
-    <!-- Scripts for A-Frame ARjs Dependencies -->
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
-    <script
-      type="text/javascript"
-      src="https://raw.githack.com/AR-js-org/AR.js/3.4.5/three.js/build/ar-threex-location-only.js"
-    ></script>
-    <script
-      type="text/javascript"
-      src="https://raw.githack.com/AR-js-org/AR.js/3.4.5/aframe/build/aframe-ar.js"
-    ></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.5/three.js/build/ar-threex-location-only.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.5/aframe/build/aframe-ar.js"></script>
 
-    <!-- Custom Scripts and Modules -->
+    <!-- Load scripts in correct order -->
     <script type="module" src="./src/firebase.js" defer></script>
     <script type="module" src="./src/fetch-event.js"></script>
-    <script src="./src/interact.js"></script>
-    <script type="module" src="./src/event.js"></script>
+    <script type="module" src="./src/event.js" defer></script>
     <script src="./src/event-rotate.js"></script>
+    <script src="./src/interact.js"></script>
     <script src="./src/arrow.js"></script>
     <script src="./src/distance.js"></script>
-
-    <!-- Test Scripts -->
-    <!-- <script type="module" src="./src/test-event.js"></script> -->
-
-    <!-- Unused Scripts -->
-    <!-- <script src="./src/url-params.js"></script> -->
   </head>
 
   <body>
@@ -38,27 +24,23 @@
       renderer="antialias: true; alpha: true"
     >
       <a-camera id="cam" gps-new-camera>
-        <!--Cursor Entity-->
         <a-entity
           cursor="fuse: true; fuseTimeout: 100"
           position="0 0 -1"
           geometry="primitive: ring; radiusInner: 0.03; radiusOuter: 0.04"
           material="color: green; shader: flat"
-        >
-        </a-entity>
+        ></a-entity>
 
-        <!--Arrow Entity will point to Event entity -->
         <a-entity id="userPOV">
           <a-text
             distance-calc
             id="arrowTxt"
-            value="Your event is this way."
+            value="No events found"
             width="2"
             align="center"
             color="white"
             position="0 -.93 -2.7"
-          >
-          </a-text>
+          ></a-text>
 
           <a-entity
             arrow-pointer
@@ -74,42 +56,26 @@
                 position="0 -.89 0"
                 color="yellow"
                 shadow="receive: false"
-              >
-              </a-box>
+              ></a-box>
             </a-triangle>
           </a-entity>
         </a-entity>
 
-        <!-- Display Window Entity -->
-        <a-entity id="displayWindow" toggle-entity position=".036 0 -.1">
-          <a-plane id="display outline" scale=".05 .05 .05" color="yellow">
-          </a-plane>
-
+        <a-entity id="displayWindow" position=".036 0 -.1" visible="false">
+          <a-plane id="display-outline" scale=".05 .05 .05" color="yellow"></a-plane>
           <a-plane id="display-inline" scale=".045 .045 .045" color="#0f4015">
-            <!-- Display Window info text -->
             <a-text
               id="display-info-text"
-              value="Name: \nPlace: \nLocation:"
+              value="No event selected"
               color="white"
               scale=".2 .2 .2"
               align="center"
               baseline="bottom"
-            >
-            </a-text>
+            ></a-text>
           </a-plane>
         </a-entity>
       </a-camera>
-
-      <!-- Event Entity -->
-      <a-entity
-        class="clickable"
-        click-display-info
-        rotation-tick
-        id="event"
-        geometry="primitive: box"
-        material="color: blue"
-      >
-      </a-entity>
+      <!-- Events will be added dynamically here -->
     </a-scene>
   </body>
 </html>
