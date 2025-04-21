@@ -4,7 +4,7 @@
 AFRAME.registerComponent("arrow-pointer", {
   init: function () {
     this.arrowEl = this.el // The entity doing the pointing (tagged element)
-    this.targetEl = document.querySelector(`#${window.currentSelectedEvent}`);// The entity we want to point toward
+    this.targetEl = document.querySelector("#event") // The entity we want to point toward
     this.cameraEl = document.querySelector("a-camera") // POV using the user's camera
   },
 
