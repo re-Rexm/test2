@@ -3,34 +3,35 @@
 
 AFRAME.registerComponent("click-display-info", {
   init: function () {
-    var el = this.el
-    var currColor = this.el.getAttribute("color")
-    this.el.addEventListener("click", this.onClick.bind(this)) // Bind click event to element
-    console.log(`The ${el.id} entity is clickable.`)
-  },
-
-  // On click change color of event entity and display information text
-  onClick: function () {
-    var window = document.querySelector("#displayWindow") // window entity to toggle
-
-    console.log(`The ${this.el.id} entity was clicked.`)
-
-    if (this.el.currColor != "white") {
-      this.el.setAttribute("material", "color: white")
-      this.el.currColor = "white"
-      console.log(this.el.currColor)
-
-      // Toggle window entity to true
-      window.object3D.visible = true
-      console.log(window.object3D.visible)
-    } else {
-      this.el.setAttribute("material", "color: blue")
-      this.el.currColor = "blue"
-      console.log(this.el.currColor)
-
-      // Toggle window entity to false
-      window.object3D.visible = false
-      console.log(window.object3D.visible)
-    }
-  },
-})
+    this.el.addEventListener('click', () => {
+      const event = this.el.eventData;
+      const displayWindow = document.querySelector("#displayWindow");
+      const infoDisplay = document.getElementById("display-info-text");
+      
+      // Highlight this event (make it white) and reset others to their original color
+      document.querySelectorAll('[click-display-info]').forEach(entity => {
+        const originalColor = entity.getAttribute('data-original-color');
+        entity.setAttribute('material', 'color', originalColor);
+      });
+      
+      // Highlight the clicked entity
+      const originalColor = this.el.getAttribute('data-original-color');
+      this.el.setAttribute('material', 'color', 'white');
+      
+      // Update display
+      infoDisplay.setAttribute(
+        'value',
+        `Name: ${event.eventName}
+        \nBldg: ${event.eventBldg} 
+        \nRm:  ${event.eventRm}
+        \nTime:  ${event.eventTime.toDate().toLocaleString()}`
+      );
+      
+      displayWindow.object3D.visible = true;
+      
+      // Update arrow pointers
+      document.querySelector("#arrow").components["arrow-pointer"].setTarget(this.el);
+      document.querySelector("#arrowTxt").components["distance-calc"].setTarget(this.el);
+    });
+  }
+});
