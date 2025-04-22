@@ -1,10 +1,14 @@
 // Event.js Script
-import { getEventByTitle } from "./fetch-event.js";
+import { getEventByTitle, getAllEvents } from "./fetch-event.js";
 
-// This script performs two actions. The first is to parse the url parameter for the eventTitle variable. The second is to wait for the document to load, link scene and event entity to their respective variables, place event location via coordinates, and apply values to the display info window.
+// This script:
+// 1. Parses the URL parameter for the eventTitle
+// 2. Displays all events as 3D boxes at their geographic locations
+// 3. Applies the click-display-info component to each event
+// 4. Initially shows details for the event specified in the URL parameter
 
-// Get url parameter
-let urlParameter = new URLSearchParams(document.location.search)
+// Get URL parameter
+let urlParameter = new URLSearchParams(document.location.search);
 
 document.addEventListener("DOMContentLoaded", async function () {
   const scene = document.querySelector("a-scene");
@@ -12,45 +16,86 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("event-js scene found!");
     console.log("Scene load state: ", scene.hasLoaded);
 
-    const elementEvent = document.getElementById("event");
+    const infoDisplay = document.getElementById("display-info-text");
+    const displayWindow = document.getElementById("displayWindow");
+    
+    // Initially hide the display window until we select an event
+    if (displayWindow) {
+      displayWindow.object3D.visible = false;
+    }
+    
+    // Get the event name from URL parameter
+    const eventTitle = urlParameter.get("eventName");
+    
+    // Get all events to display them all
+    const allEvents = await getAllEvents();
+    let specificEventEntity = null;
+    
+    if (allEvents && allEvents.length > 0) {
+      console.log(`Retrieved ${allEvents.length} events`);
+      
+      // Create and place all events
+      allEvents.forEach((event, index) => {
+        // Create a new entity for each event
+        const eventEntity = document.createElement("a-entity");
+        eventEntity.id = `event-${index}`;
+        
+        // Set common geometry for all events
+        eventEntity.setAttribute("geometry", {
+          primitive: "box",
+          width: 8,
+          height: 8,
+          depth: 8,
+        });
+        
+        // Set different colors for different events
+        // Make the queried event stand out with a different color
+        const color = event.eventName === eventTitle ? "#ffcc00" : "#3399ff";
+        eventEntity.setAttribute("material", { color: color });
+        
+        // Place entity at gps location using events geloc data from firebase
+        eventEntity.setAttribute("gps-new-entity-place", {
+          latitude: parseFloat(event.eventGeo.latitude),
+          longitude: parseFloat(event.eventGeo.longitude),
+        });
+        
+        // Store this entity if it matches the specified event name
+        if (event.eventName === eventTitle) {
+          specificEventEntity = eventEntity;
+        }
+        
+        // Add the click-display-info component with event data
+        const safeEventData = { ...event };
+        // Handle Firestore Timestamp objects before stringifying
+        if (safeEventData.eventTime && typeof safeEventData.eventTime.toDate === 'function') {
+          safeEventData.eventTime = safeEventData.eventTime.toDate().toISOString();
+        }
+        eventEntity.setAttribute("click-display-info", {
+          eventData: JSON.stringify(safeEventData)
+        });
 
-    if (elementEvent) {
-      console.log("Event entity found!");
-      const infoDisplay = document.getElementById("display-info-text");
-
-      // Set scale, primitive and color.
-      elementEvent.setAttribute("geometry", {
-        primitive: "box",
-        width: 8,
-        height: 8,
-        depth: 8,
+        // Add the entity to the scene
+        scene.appendChild(eventEntity);
+        
+        console.log(
+          `Event ${index} Position:`,
+          eventEntity.getAttribute("gps-new-entity-place")
+        );
       });
-
-      // Create search variable to match with firebase event
-      const eventTitle = urlParameter.get("eventName");
-      const event = await getEventByTitle(eventTitle);
-
-      // Place entity at gps location using events geloc data from firebase
-      elementEvent.setAttribute("gps-new-entity-place", {
-        latitude: parseFloat(event.eventGeo.latitude),
-        longitude: parseFloat(event.eventGeo.longitude),
-      });
-      // Log position
-      console.log(
-        "Event Position:",
-        elementEvent.getAttribute("gps-new-entity-place")
-      );
-
-      // Display values of event data from firebase
-      infoDisplay.setAttribute(
-        "value",
-        `Name: ${event.eventName}
-        \nBldg: ${event.eventBldg} 
-        \nRm:  ${event.eventRm}
-        \nTime:  ${event.eventTime.toDate().toLocaleString()}`
-      );
+      
+      // If an event name was specified in URL, trigger its click event automatically
+      if (specificEventEntity) {
+        // Use a slight delay to ensure components are initialized
+        setTimeout(() => {
+          // Simulate a click on the specific event
+          specificEventEntity.components["click-display-info"].onClick();
+        }, 500);
+      }
     } else {
-      console.error("Event entity not found!");
+      console.error("No events found or error retrieving events");
+      if (infoDisplay) {
+        infoDisplay.setAttribute("value", "No events available");
+      }
     }
   } else {
     console.error("Scene element not found!");
