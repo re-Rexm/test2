@@ -43,9 +43,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         // Set common geometry for all events
         eventEntity.setAttribute("geometry", {
           primitive: "box",
-          width: 8,
-          height: 8,
-          depth: 8,
+          width: 20,
+          height: 20,
+          depth: 22,
         });
         
         // Set different colors for different events
@@ -87,8 +87,19 @@ document.addEventListener("DOMContentLoaded", async function () {
       if (specificEventEntity) {
         // Use a slight delay to ensure components are initialized
         setTimeout(() => {
-          // Simulate a click on the specific event
-          specificEventEntity.components["click-display-info"].onClick();
+          if (specificEventEntity && specificEventEntity.components["click-display-info"]) {
+            // First trigger the click handler
+            specificEventEntity.components["click-display-info"].onClick();
+            
+            // Then manually dispatch the event-selected event
+            const eventSelectedEvent = new CustomEvent("event-selected", {
+              detail: { 
+                entity: specificEventEntity,
+                eventData: specificEventEntity.components["click-display-info"].eventData
+              }
+            });
+            document.dispatchEvent(eventSelectedEvent);
+          }
         }, 500);
       }
     } else {
