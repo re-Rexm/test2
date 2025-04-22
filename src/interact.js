@@ -8,12 +8,7 @@ AFRAME.registerComponent("click-display-info", {
     this.isSelected = false;
 
     try {
-      const parsedData = JSON.parse(this.data.eventData);
-      // Convert ISO string back to Date object if needed
-      this.eventData = {
-        ...parsedData,
-        eventTime: parsedData.eventTime ? new Date(parsedData.eventTime) : null
-      };
+      this.eventData = JSON.parse(this.data.eventData);
     } catch (e) {
       console.error("Failed to parse event data:", e);
       this.eventData = {};
@@ -25,10 +20,9 @@ AFRAME.registerComponent("click-display-info", {
   onClick: function () {
     const infoWindow = document.getElementById("displayWindow");
     const infoDisplay = document.getElementById("display-info-text");
-    const allEvents = document.querySelectorAll("[click-display-info]");
 
     // Deselect all other events
-    allEvents.forEach(el => {
+    document.querySelectorAll("[click-display-info]").forEach(el => {
       if (el !== this.el) {
         const comp = el.components["click-display-info"];
         el.setAttribute("material", "color", comp.originalColor);
@@ -43,17 +37,15 @@ AFRAME.registerComponent("click-display-info", {
       this.isSelected = true;
       infoWindow.object3D.visible = true;
 
-      // Format time for display
-      const timeStr = this.eventData.eventTime ?
-        this.eventData.eventTime.toLocaleString() :
-        "Time not specified";
+      // Format time
+      const eventTime = new Date(this.eventData.eventTime).toLocaleString();
 
-      // Update display text
+      // Update display
       infoDisplay.setAttribute("value",
-        `Name: ${this.eventData.eventName || "Unknown"}
-        \nBldg: ${this.eventData.eventBldg || "N/A"}
-        \nRm: ${this.eventData.eventRm || "N/A"}
-        \nTime: ${timeStr}`
+        `Name: ${this.eventData.eventName}
+        \nBldg: ${this.eventData.eventBldg}
+        \nRm: ${this.eventData.eventRm}
+        \nTime: ${eventTime}`
       );
 
       // Dispatch selection event

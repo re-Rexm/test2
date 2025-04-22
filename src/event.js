@@ -8,22 +8,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   const eventTitle = urlParams.get("eventName");
   const allEvents = await getAllEvents();
 
-  if (!allEvents || !allEvents.length) {
-    console.error("No events found");
-    infoDisplay.setAttribute("value", "No events available");
-    return;
-  }
-
-  // Remove any existing events
-  const existingEvents = document.querySelectorAll("[click-display-info]");
-  existingEvents.forEach(el => el.remove());
+  // Clear any existing events
+  document.querySelectorAll("[click-display-info]").forEach(el => el.remove());
 
   // Create all event entities
-  allEvents.forEach((event, index) => {
+  allEvents.forEach((event) => {
     const eventEl = document.createElement("a-entity");
-    eventEl.id = `event-${event.id || index}`; // Use Firebase ID if available
+    eventEl.id = event.id;
     
-    // Set geometry and appearance
+    // Set properties
     eventEl.setAttribute("geometry", {
       primitive: "box",
       width: 8,
@@ -31,25 +24,18 @@ document.addEventListener("DOMContentLoaded", async function () {
       depth: 8
     });
 
-    // Set initial color (highlight query event)
-    const isQueryEvent = event.eventName === eventTitle;
-    const color = isQueryEvent ? "#ffcc00" : "#3399ff";
+    // Highlight if it's the searched event
+    const color = event.eventName === eventTitle ? "#ffcc00" : "#3399ff";
     eventEl.setAttribute("material", { color: color });
     
-    // Set GPS position
     eventEl.setAttribute("gps-new-entity-place", {
-      latitude: parseFloat(event.eventGeo.latitude),
-      longitude: parseFloat(event.eventGeo.longitude)
+      latitude: event.eventGeo.latitude,
+      longitude: event.eventGeo.longitude
     });
 
-    // Add interaction component with proper event data
-    const eventData = {
-      ...event,
-      // Convert Firestore timestamp to ISO string for storage
-      eventTime: event.eventTime.toDate().toISOString()
-    };
+    // Add interaction component
     eventEl.setAttribute("click-display-info", {
-      eventData: JSON.stringify(eventData)
+      eventData: JSON.stringify(event)
     });
 
     // Add rotation animation
@@ -58,23 +44,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Add to scene
     scene.appendChild(eventEl);
 
-    // If this is the query event, select it after a delay
-    if (isQueryEvent) {
+    // Auto-select if it matches URL parameter
+    if (event.eventName === eventTitle) {
       setTimeout(() => {
         if (eventEl.components["click-display-info"]) {
           eventEl.components["click-display-info"].onClick();
-          
-          // Manually update display info
-          const time = new Date(eventData.eventTime).toLocaleString();
-          infoDisplay.setAttribute("value",
-            `Name: ${event.eventName}
-            \nBldg: ${event.eventBldg}
-            \nRm: ${event.eventRm}
-            \nTime: ${time}`
-          );
-          displayWindow.object3D.visible = true;
         }
-      }, 2000); // Longer delay for GPS settling
+      }, 500);
     }
   });
 });
