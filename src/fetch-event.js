@@ -1,40 +1,21 @@
-// fetchEvent.js
-import { db } from "./firebase.js"
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
-
-export async function getEventByTitle(eventTitle) {
-  const events = collection(db, "events")
-  let qry = events;
-  
-  if (eventTitle) {
-    qry = query(events, where("eventName", "==", eventTitle))
-  }
-
-  try {
-    const querySnapshot = await getDocs(qry)
-    if (querySnapshot.empty) return null
-    
-    if (eventTitle) {
-      return querySnapshot.docs[0].data()
-    } else {
-      const docs = querySnapshot.docs
-      return docs[Math.floor(Math.random() * docs.length)].data()
-    }
-  } catch (error) {
-    return null
-  }
-}
+// fetch-event.js
+import { db } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 export async function getAllEvents() {
+  const events = collection(db, "events");
+  
   try {
-    const querySnapshot = await getDocs(collection(db, "events"))
-    return querySnapshot.docs.map(doc => doc.data())
+    const querySnapshot = await getDocs(events);
+    const eventsList = [];
+    
+    querySnapshot.forEach((doc) => {
+      eventsList.push(doc.data());
+    });
+
+    return eventsList;
   } catch (error) {
-    return []
+    console.error("Error fetching events:", error);
+    return [];
   }
 }

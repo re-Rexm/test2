@@ -1,67 +1,39 @@
-import { getEventByTitle, getAllEvents } from "./fetch-event.js";
+// event.js
+import { getAllEvents } from "./fetch-event.js";
 
 document.addEventListener("DOMContentLoaded", async function () {
   const scene = document.querySelector("a-scene");
   if (!scene) return;
 
-  // Wait for scene to load
-  scene.addEventListener("loaded", async function() {
-    const urlParameter = new URLSearchParams(document.location.search);
-    const eventTitle = urlParameter.get("eventName");
-    const infoDisplay = document.getElementById("display-info-text");
-    const displayWindow = document.querySelector("#displayWindow");
+  const events = await getAllEvents();
+  if (!events || events.length === 0) return;
 
-    // Get all events
-    const allEvents = await getAllEvents();
-    if (!allEvents.length) {
-      document.getElementById("arrowTxt").setAttribute("value", "No events found");
-      return;
-    }
+  // Colors for different events
+  const colors = ["#FF5733", "#33FF57", "#3357FF", "#F333FF", "#FF33F3", "#33FFF5"];
 
-    // Create event entities
-    allEvents.forEach((event, index) => {
-      const color = `hsl(${(index * 360) / allEvents.length}, 100%, 50%)`;
-      const eventEl = document.createElement("a-entity");
-      eventEl.setAttribute("id", `event-${index}`);
-      eventEl.setAttribute("class", "clickable");
-      eventEl.setAttribute("click-display-info", "");
-      eventEl.setAttribute("rotation-tick", "");
-      eventEl.setAttribute("geometry", {
-        primitive: "box",
-        width: 8,
-        height: 8,
-        depth: 8
-      });
-      eventEl.setAttribute("material", { color: color });
-      eventEl.setAttribute("gps-new-entity-place", {
-        latitude: parseFloat(event.eventGeo.latitude),
-        longitude: parseFloat(event.eventGeo.longitude)
-      });
-      eventEl.eventData = event;
-      eventEl.originalColor = color;
-      scene.appendChild(eventEl);
+  events.forEach((event, index) => {
+    // Create a new entity for each event
+    const eventEntity = document.createElement("a-entity");
+    eventEntity.setAttribute("id", `event-${index}`);
+    
+    // Set geometry with random color
+    eventEntity.setAttribute("geometry", {
+      primitive: "box",
+      width: 8,
+      height: 8,
+      depth: 8,
+    });
+    
+    // Use modulo to cycle through colors if there are more events than colors
+    eventEntity.setAttribute("material", "color", colors[index % colors.length]);
+    
+    // Place entity at GPS location
+    eventEntity.setAttribute("gps-new-entity-place", {
+      latitude: parseFloat(event.eventGeo.latitude),
+      longitude: parseFloat(event.eventGeo.longitude),
     });
 
-    // Set default active event
-    let defaultEvent = eventTitle 
-      ? allEvents.find(e => e.eventName === eventTitle)
-      : allEvents[Math.floor(Math.random() * allEvents.length)];
-
-    if (defaultEvent) {
-      const defaultEventEl = document.querySelector(`[eventData="${defaultEvent.eventName}"]`);
-      if (defaultEventEl) {
-        defaultEventEl.setAttribute("material", "color", "white");
-        defaultEventEl.setAttribute("isActive", "");
-        infoDisplay.setAttribute("value", getEventInfoText(defaultEvent));
-        displayWindow.setAttribute("visible", "true");
-      }
-    }
+    // Add to scene
+    scene.appendChild(eventEntity);
   });
 });
-
-function getEventInfoText(event) {
-  return `Name: ${event.eventName}
-    \nBldg: ${event.eventBldg} 
-    \nRm:  ${event.eventRm}
-    \nTime:  ${event.eventTime.toDate().toLocaleString()}`;
-}
