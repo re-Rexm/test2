@@ -4,14 +4,18 @@ AFRAME.registerComponent("click-display-info", {
   },
 
   init: function () {
-    this.originalColor = this.el.getAttribute("material").color || "blue";
+    this.originalColor = this.el.getAttribute("material").color || "#3399ff";
     this.isSelected = false;
 
     try {
-      // Parse event data but keep timestamp as string to handle later
-      this.eventData = JSON.parse(this.data.eventData);
+      const parsedData = JSON.parse(this.data.eventData);
+      // Convert ISO string back to Date object if needed
+      this.eventData = {
+        ...parsedData,
+        eventTime: parsedData.eventTime ? new Date(parsedData.eventTime) : null
+      };
     } catch (e) {
-      console.warn("Could not parse event data", e);
+      console.error("Failed to parse event data:", e);
       this.eventData = {};
     }
 
@@ -21,40 +25,35 @@ AFRAME.registerComponent("click-display-info", {
   onClick: function () {
     const infoWindow = document.getElementById("displayWindow");
     const infoDisplay = document.getElementById("display-info-text");
+    const allEvents = document.querySelectorAll("[click-display-info]");
 
     // Deselect all other events
-    document.querySelectorAll("[click-display-info]").forEach(el => {
+    allEvents.forEach(el => {
       if (el !== this.el) {
-        el.setAttribute("material", "color", el.components["click-display-info"].originalColor);
-        el.components["click-display-info"].isSelected = false;
+        const comp = el.components["click-display-info"];
+        el.setAttribute("material", "color", comp.originalColor);
+        comp.isSelected = false;
       }
     });
 
+    // Toggle selection
     if (!this.isSelected) {
       // Select this event
       this.el.setAttribute("material", "color", "white");
       this.isSelected = true;
       infoWindow.object3D.visible = true;
 
-      // Format time properly
-      let eventTime;
-      try {
-        if (this.eventData.eventTime && typeof this.eventData.eventTime.toDate === 'function') {
-          eventTime = this.eventData.eventTime.toDate().toLocaleString();
-        } else if (typeof this.eventData.eventTime === 'string') {
-          eventTime = new Date(this.eventData.eventTime).toLocaleString();
-        } else {
-          eventTime = "Time not specified";
-        }
-      } catch (e) {
-        eventTime = "Time not available";
-      }
+      // Format time for display
+      const timeStr = this.eventData.eventTime ?
+        this.eventData.eventTime.toLocaleString() :
+        "Time not specified";
 
+      // Update display text
       infoDisplay.setAttribute("value",
         `Name: ${this.eventData.eventName || "Unknown"}
         \nBldg: ${this.eventData.eventBldg || "N/A"}
         \nRm: ${this.eventData.eventRm || "N/A"}
-        \nTime: ${eventTime}`
+        \nTime: ${timeStr}`
       );
 
       // Dispatch selection event
@@ -66,7 +65,7 @@ AFRAME.registerComponent("click-display-info", {
       });
       document.dispatchEvent(event);
     } else {
-      // Deselect this event
+      // Deselect
       this.el.setAttribute("material", "color", this.originalColor);
       this.isSelected = false;
       infoWindow.object3D.visible = false;
