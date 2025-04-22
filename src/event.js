@@ -1,67 +1,50 @@
+import { getEventByTitle, getAllEvents } from "./fetch-event.js";
+
 document.addEventListener("DOMContentLoaded", async function () {
   const scene = document.querySelector("a-scene");
-  if (!scene) return;
-
-  const eventTitle = new URLSearchParams(document.location.search).get("eventName");
+  const infoDisplay = document.getElementById("display-info-text");
+  const urlParams = new URLSearchParams(window.location.search);
+  const eventTitle = urlParams.get("eventName");
   const allEvents = await getAllEvents();
 
-  if (!allEvents || allEvents.length === 0) {
+  if (!allEvents || !allEvents.length) {
     console.error("No events found");
     return;
   }
 
-  // Create all event entities
+  // Create event entities
   allEvents.forEach((event, index) => {
-    const eventEntity = document.createElement("a-entity");
-    eventEntity.id = `event-${index}`;
+    const eventEl = document.createElement("a-entity");
+    eventEl.id = `event-${index}`;
     
-    eventEntity.setAttribute("geometry", {
+    eventEl.setAttribute("geometry", {
       primitive: "box",
       width: 8,
       height: 8,
       depth: 8
     });
 
-    // Highlight the searched event
+    // Highlight if it's the searched event
     const color = event.eventName === eventTitle ? "#ffcc00" : "#3399ff";
-    eventEntity.setAttribute("material", { color: color });
+    eventEl.setAttribute("material", { color: color });
     
-    eventEntity.setAttribute("gps-new-entity-place", {
+    eventEl.setAttribute("gps-new-entity-place", {
       latitude: parseFloat(event.eventGeo.latitude),
       longitude: parseFloat(event.eventGeo.longitude)
     });
 
-    // Add interaction component with proper event data
-    eventEntity.setAttribute("click-display-info", {
+    eventEl.setAttribute("click-display-info", {
       eventData: JSON.stringify(event)
     });
 
-    scene.appendChild(eventEntity);
-  });
+    eventEl.setAttribute("rotation-tick", "");
+    scene.appendChild(eventEl);
 
-  // Auto-select the searched event if specified
-  if (eventTitle) {
-    const targetEvent = Array.from(document.querySelectorAll("[click-display-info]"))
-      .find(el => {
-        try {
-          const data = JSON.parse(el.getAttribute("click-display-info").eventData);
-          return data.eventName === eventTitle;
-        } catch (e) {
-          return false;
-        }
-      });
-
-    if (targetEvent) {
+    // Auto-select if it matches URL parameter
+    if (event.eventName === eventTitle) {
       setTimeout(() => {
-        targetEvent.components["click-display-info"].onClick();
-        
-        // Manually trigger arrow update
-        const arrow = document.querySelector("[arrow-pointer]");
-        if (arrow && arrow.components["arrow-pointer"]) {
-          arrow.components["arrow-pointer"].targetEl = targetEvent;
-          console.log("Forced arrow target update");
-        }
-      }, 1000); // Increased delay to ensure everything is loaded
+        eventEl.components["click-display-info"].onClick();
+      }, 1000);
     }
-  }
+  });
 });

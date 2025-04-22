@@ -1,29 +1,48 @@
 AFRAME.registerComponent("click-display-info", {
-  // ... existing schema and init ...
+  schema: {
+    eventData: { type: 'string', default: '{}' }
+  },
+
+  init: function () {
+    this.el = this.el;
+    this.originalColor = this.el.getAttribute("material").color || "blue";
+    this.isSelected = false;
+
+    try {
+      this.eventData = JSON.parse(this.data.eventData);
+    } catch (e) {
+      console.warn("Could not parse event data", e);
+      this.eventData = {};
+    }
+
+    this.el.addEventListener("click", this.onClick.bind(this));
+  },
 
   onClick: function () {
-    // ... existing deselection logic ...
+    // Deselect all other events
+    document.querySelectorAll("[click-display-info]").forEach(el => {
+      if (el !== this.el) {
+        el.setAttribute("material", "color", el.components["click-display-info"].originalColor);
+        el.components["click-display-info"].isSelected = false;
+      }
+    });
 
+    // Toggle selection
     if (!this.isSelected) {
       this.el.setAttribute("material", "color", "white");
       this.isSelected = true;
 
-      // Dispatch selection event with proper data
-      const eventData = this.eventData;
-      const eventSelectedEvent = new CustomEvent("event-selected", {
+      // Dispatch selection event
+      const event = new CustomEvent("event-selected", {
         detail: {
           entity: this.el,
-          eventData: eventData
+          eventData: this.eventData
         }
       });
-      document.dispatchEvent(eventSelectedEvent);
-      
-      // Force arrow to update immediately
-      const arrow = document.querySelector("[arrow-pointer]");
-      if (arrow && arrow.components["arrow-pointer"]) {
-        arrow.components["arrow-pointer"].targetEl = this.el;
-      }
+      document.dispatchEvent(event);
+    } else {
+      this.el.setAttribute("material", "color", this.originalColor);
+      this.isSelected = false;
     }
-    // ... rest of the code ...
   }
 });
