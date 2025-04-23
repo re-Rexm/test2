@@ -9,19 +9,21 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
-// Helper to parse geo array like ["39.7862° N", "84.0684° W"]
-//function parseGeo(geoArray) {
-//  const latStr = geoArray[0]
-//  const lngStr = geoArray[1]
-//
-//  const lat = parseFloat(latStr) * (latStr.includes("S") ? -1 : 1)
-//  const lng = parseFloat(lngStr) * (lngStr.includes("W") ? -1 : 1)
-//
-//  return {
-//    latitude: lat,
-//    longitude: lng
-//  }
-//}
+// Helper to parse geo array like 
+function parseGeoString(geoStr) {
+  const match = geoStr.match(/([\d.]+).*([NSEW])/);
+  if (!match) return null;
+
+  let value = parseFloat(match[1]);
+  const direction = match[2];
+
+  if (["S", "W"].includes(direction)) {
+    value *= -1;
+  }
+
+  return value;
+}
+
 
 export async function getEventByTitle(eventTitle) {
   try {
@@ -45,8 +47,8 @@ export async function getAllEvents() {
     querySnapshot.forEach((doc) => {
       const data = doc.data()
       const eventGeo = {
-        latitude: parseFloat(data.eventGeo.latitude),
-        longitude: parseFloat(data.eventGeo.longitude)
+        latitude: parseGeoString(data.eventGeo[0]),
+        longitude: parseGeoString(data.eventGeo[1])
       };
       // Put data into an array
       mockEvents.push({
