@@ -10,19 +10,19 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
 // Helper to parse geo array like 
-function parseGeoString(geoStr) {
-  const match = geoStr.match(/([\d.]+).*([NSEW])/);
-  if (!match) return null;
-
-  let value = parseFloat(match[1]);
-  const direction = match[2];
-
-  if (["S", "W"].includes(direction)) {
-    value *= -1;
-  }
-
-  return value;
-}
+//function parseGeoString(geoStr) {
+//  const match = geoStr.match(/([\d.]+).*([NSEW])/);
+//  if (!match) return null;
+//
+//  let value = parseFloat(match[1]);
+//  const direction = match[2];
+//
+//  if (["S", "W"].includes(direction)) {
+//    value *= -1;
+//  }
+//
+//  return value;
+//}
 
 
 export async function getEventByTitle(eventTitle) {
@@ -46,9 +46,9 @@ export async function getAllEvents() {
 
     querySnapshot.forEach((doc) => {
       const data = doc.data()
-      const eventGeo = {
-        latitude: parseGeoString(data.eventGeo[0]),
-        longitude: parseGeoString(data.eventGeo[1])
+      const eventGeol = {
+        latitude: data.eventGeo.latitude,
+        longitude: data.eventGeo.longitude
       };
       // Put data into an array
       mockEvents.push({
@@ -57,7 +57,7 @@ export async function getAllEvents() {
         eventBldg: data.eventBldg,
         eventRm: data.eventRm,
         eventTime: data.eventTime.toDate?.() || new Date(data.eventTime),
-        eventGeo: eventGeo
+        eventGeo: eventGeol
       })
     })
 
