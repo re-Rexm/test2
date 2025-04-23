@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (eventEl.components["click-display-info"]) {
           eventEl.components["click-display-info"].onClick();
         }
-      }, 1000); // Delay to allow for loading
+      }, 2000); // Delay to allow for loading
     }
   });
 });
