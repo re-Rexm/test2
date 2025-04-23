@@ -46,13 +46,7 @@ export async function getAllEvents() {
     querySnapshot.forEach((doc) => {
       const data = doc.data()
       const eventGeo = data.eventGeo;
-      let latitude = null
-      let longitude = null
-
-      if (eventGeo) {
-        latitude = eventGeo.latitude;
-        longitude = eventGeo.longitude;
-      }
+      
 
       // Put data into an array
       mockEvents.push({
@@ -62,8 +56,12 @@ export async function getAllEvents() {
         eventRm: data.eventRm,
         eventTime: data.eventTime.toDate?.() || new Date(data.eventTime),
         eventGeo: {
-          latitude,
-          longitude      }
+          latitude: eventGeo instanceof GeoPoint 
+            ? eventGeo.latitude 
+            : eventGeo?.latitude,
+          longitude: eventGeo instanceof GeoPoint 
+            ? eventGeo.longitude 
+            : eventGeo?.longitude      }
           
         
       })
