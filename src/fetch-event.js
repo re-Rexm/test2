@@ -72,8 +72,8 @@ export const mockEvents = [
     eventRm: "Hall A",
     eventTime: new Date(Date.now() + 86400000), // Tomorrow
     eventGeo: {
-      latitude: 37.7749,
-      longitude: -122.4194
+      latitude: 39.7862,
+      longitude: -84.0684
     }
   },
   {
@@ -83,8 +83,8 @@ export const mockEvents = [
     eventRm: "Main Stage",
     eventTime: new Date(Date.now() + 172800000), // 2 days from now
     eventGeo: {
-      latitude: 37.7694,
-      longitude: -122.4262
+      latitude: 39.787,
+      longitude: -84.0684
     }
   },
   {
@@ -94,8 +94,8 @@ export const mockEvents = [
     eventRm: "Gallery 3",
     eventTime: new Date(Date.now() + 259200000), // 3 days from now
     eventGeo: {
-      latitude: 37.7857,
-      longitude: -122.4011
+      latitude: 39.7868,
+      longitude: -84.068
     }
   }
 ];

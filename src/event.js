@@ -4,14 +4,13 @@
 // place event location via coordinates, and apply values to the display info window.
 import { getEventByTitle, getAllEvents } from "./fetch-event.js";
 
-
 document.addEventListener("DOMContentLoaded", async function () {
   const scene = document.querySelector("a-scene");
   const infoDisplay = document.getElementById("display-info-text");
   const displayWindow = document.getElementById("displayWindow");
-  const urlParams = new URLSearchParams(window.location.search); // Get URL parameters
-  const eventTitle = urlParams.get("eventName"); // Get the event name from the URL
-  const allEvents = await getAllEvents(); // Fetch all events from the database
+  const urlParams = new URLSearchParams(window.location.search);
+  const eventTitle = urlParams.get("eventName");
+  const allEvents = await getAllEvents();
 
   // Clear any existing events
   document.querySelectorAll("[click-display-info]").forEach(el => el.remove());
@@ -55,7 +54,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (eventEl.components["click-display-info"]) {
           eventEl.components["click-display-info"].onClick();
         }
-      }, 2000); // Delay to allow for loading
+      }, 500);
     }
   });
 });
