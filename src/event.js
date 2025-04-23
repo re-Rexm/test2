@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (eventEl.components["click-display-info"]) {
           eventEl.components["click-display-info"].onClick();
         }
-      }, 500);
+      }, 1000);
     }
   });
 });

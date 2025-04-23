@@ -6,22 +6,6 @@ import {
   getDocs,
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
-// Helper function to process Firestore document
-const processEventDoc = (doc) => {
-  const data = doc.data();
-  return {
-    id: doc.id,
-    eventName: data.eventName || "Unnamed Event",
-    eventBldg: data.eventBldg || "Location not specified",
-    eventRm: data.eventRm || "Room not specified",
-    eventTime: data.eventTime || new Date(), // Fallback to current time
-    eventGeo: {
-      latitude: data.eventGeo?.latitude || 0,
-      longitude: data.eventGeo?.longitude || 0
-    }
-  };
-};
-
 export async function getEventByTitle(eventTitle) {
   try {
     const eventsRef = collection(db, "events");
@@ -42,19 +26,58 @@ export async function getEventByTitle(eventTitle) {
 }
 
 export async function getAllEvents() {
+  const events = collection(db, "events")
+
   try {
-    const eventsRef = collection(db, "events");
-    const querySnapshot = await getDocs(eventsRef);
+    const querySnapshot = await getDocs(events)
+    const mockEvents = []
 
-    if (querySnapshot.empty) {
-      console.warn("No events found in database");
-      return [];
-    }
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
 
-    // Process all events into our standard format
-    return querySnapshot.docs.map(doc => processEventDoc(doc));
+      mockEvents.push({
+        id: doc.id,
+        eventName: data.eventName,
+        eventBldg: data.eventBldg,
+        eventRm: data.eventRm,
+        eventTime: data.eventTime.toDate?.() || new Date(data.eventTime),
+        eventGeo: {
+          latitude: data.eventGeo.latitude,
+          longitude: data.eventGeo.longitude
+        }
+      })
+    })
+
+    return mockEvents
   } catch (error) {
-    console.error("Error fetching events:", error);
-    return [];
+    console.error("Error fetching events:", error)
+    return []
   }
 }
+
+
+
+//export const mockEvents = [
+//  {
+//    id: "event1",
+//    eventName: "Tech Conference",
+//    eventBldg: "Convention Center",
+//    eventRm: "Hall A",
+//    eventTime: new Date(Date.now() + 86400000),
+//    eventGeo: {
+//      latitude: 37.7749,
+//      longitude: -122.4194
+//    }
+//  },
+//  {
+//    id: "event2",
+//    eventName: "Music Festival",
+//    eventBldg: "City Park",
+//    eventRm: "Main Stage",
+//    eventTime: new Date(Date.now() + 172800000),
+//    eventGeo: {
+//      latitude: 37.7694,
+//      longitude: -122.4262
+//    }
+//  }
+//];
