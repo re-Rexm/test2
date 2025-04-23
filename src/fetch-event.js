@@ -10,18 +10,19 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
 
 // Helper to parse geo array like ["39.7862° N", "84.0684° W"]
-function parseGeo(geoArray) {
-  const latStr = geoArray[0]
-  const lngStr = geoArray[1]
-
-  const lat = parseFloat(latStr) * (latStr.includes("S") ? -1 : 1)
-  const lng = parseFloat(lngStr) * (lngStr.includes("W") ? -1 : 1)
-
-  return {
-    latitude: lat,
-    longitude: lng
-  }
-}
+//function parseGeo(geoArray) {
+//  const latStr = geoArray[0]
+//  const lngStr = geoArray[1]
+//
+//  const lat = parseFloat(latStr) * (latStr.includes("S") ? -1 : 1)
+//  const lng = parseFloat(lngStr) * (lngStr.includes("W") ? -1 : 1)
+//
+//  return {
+//    latitude: lat,
+//    longitude: lng
+//  }
+//}
+//
 
 export async function getEventByTitle(eventTitle) {
   try {
@@ -51,7 +52,11 @@ export async function getAllEvents() {
         eventBldg: data.eventBldg,
         eventRm: data.eventRm,
         eventTime: data.eventTime.toDate?.() || new Date(data.eventTime),
-        eventGeo: parseGeo(data.eventGeo)
+        eventGeo: {
+          latitude: data.eventGeo.latitude,
+          longitude: data.eventGeo.longitude      }
+          
+        
       })
     })
 
