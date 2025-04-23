@@ -1,12 +1,17 @@
+// Event.js Script
+// This script performs two actions. The first is to parse the url parameter for the eventTitle variable. 
+// The second is to wait for the document to load, link scene and event entity to their respective variables, 
+// place event location via coordinates, and apply values to the display info window.
 import { getEventByTitle, getAllEvents } from "./fetch-event.js";
+
 
 document.addEventListener("DOMContentLoaded", async function () {
   const scene = document.querySelector("a-scene");
   const infoDisplay = document.getElementById("display-info-text");
   const displayWindow = document.getElementById("displayWindow");
-  const urlParams = new URLSearchParams(window.location.search);
-  const eventTitle = urlParams.get("eventName");
-  const allEvents = await getAllEvents();
+  const urlParams = new URLSearchParams(window.location.search); // Get URL parameters
+  const eventTitle = urlParams.get("eventName"); // Get the event name from the URL
+  const allEvents = await getAllEvents(); // Fetch all events from the database
 
   // Clear any existing events
   document.querySelectorAll("[click-display-info]").forEach(el => el.remove());
@@ -50,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (eventEl.components["click-display-info"]) {
           eventEl.components["click-display-info"].onClick();
         }
-      }, 1500);
+      }, 1500); // Delay to allow for loading
     }
   });
 });

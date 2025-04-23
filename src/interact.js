@@ -1,3 +1,8 @@
+// interact.js
+// This component modifies an entity to do something when the user touches the screen location 
+// where the entity is displayed 
+// (i.e., user touches event box with cursor, box displays event information on screen, user touches again, event info goes away).
+
 AFRAME.registerComponent("click-display-info", {
   schema: {
     eventData: { type: 'string', default: '{}' }

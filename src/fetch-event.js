@@ -1,3 +1,8 @@
+// fetchEvent.js
+// This script is a function that takes in the name of the fieldname and attempts to
+//  match it with an event in the database. If a match is found then the event data is returned.
+
+// Imports
 import { db } from "./firebase.js"
 import {
   collection,
@@ -19,15 +24,17 @@ function parseGeo(geoArray) {
 }
 
 export async function getAllEvents() {
+  // Create collection from database
   const events = collection(db, "events")
 
+  // Attempt to get results
   try {
     const querySnapshot = await getDocs(events)
     const mockEvents = []
 
     querySnapshot.forEach((doc) => {
       const data = doc.data()
-
+      // Put data into an array
       mockEvents.push({
         id: doc.id,
         eventName: data.eventName,

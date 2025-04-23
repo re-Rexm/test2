@@ -1,16 +1,22 @@
+// arrow.js
+// This script adds a custom component that changes rotation of the arrow entity based on the
+//  users camera POV and the target (event) location. 
+ 
+
 AFRAME.registerComponent("arrow-pointer", {
   init: function () {
-    this.arrowEl = this.el;
-    this.cameraEl = document.querySelector("a-camera");
-    this.targetEl = null;
-
+    this.arrowEl = this.el; // The entity doing the pointing (tagged element)
+    this.cameraEl = document.querySelector("a-camera"); // POV using the user's camera
+    this.targetEl = null; // The entity we want to point toward
+    
+    // Use the event-selected event to set the target element
     this.onEventSelected = (e) => {
       if (e.detail && e.detail.entity) {
         this.targetEl = e.detail.entity;
         console.log("Arrow targeting:", this.targetEl.id);
       }
     };
-
+    // Listen for the event-selected event to update the target element
     document.addEventListener("event-selected", this.onEventSelected);
   },
 
@@ -31,9 +37,11 @@ AFRAME.registerComponent("arrow-pointer", {
     const targetLocalPos = targetWorldPos.clone();
     this.cameraEl.object3D.worldToLocal(targetLocalPos);
 
+    // Angle in radians
     const angleRad = Math.atan2(targetLocalPos.y, targetLocalPos.x);
+    // Convert radian angle to degrees
     const angleDeg = THREE.MathUtils.radToDeg(angleRad) - 90;
-
+    // Set degree to the x-axis of the arrow element
     this.arrowEl.setAttribute("rotation", {
       x: 0,
       y: 0,
