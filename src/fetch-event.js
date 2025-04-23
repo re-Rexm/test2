@@ -45,8 +45,8 @@ export async function getAllEvents() {
     querySnapshot.forEach((doc) => {
       const data = doc.data()
       const eventGeo = {
-        latitude: parseFloat(data.eventGeo.latitude),
-        longitude: parseFloat(data.eventGeo.longitude)
+        latitude: parseFloat(data.eventGeo[0]),
+        longitude: parseFloat(data.eventGeo[1])
       };
       // Put data into an array
       mockEvents.push({
