@@ -45,6 +45,19 @@ export async function getAllEvents() {
 
     querySnapshot.forEach((doc) => {
       const data = doc.data()
+      let latitude = null
+      let longitude = null
+
+      // Check if eventGeo exists and is a Firestore GeoPoint
+      if (data.eventGeo && typeof data.eventGeo.latitude === "function" && typeof data.eventGeo.longitude === "function") {
+        latitude = data.eventGeo.latitude()
+        longitude = data.eventGeo.longitude()
+      } else if (data.eventGeo && data.eventGeo.latitude && data.eventGeo.longitude) {
+        // If already a plain object
+        latitude = data.eventGeo.latitude
+        longitude = data.eventGeo.longitude
+      }
+
       // Put data into an array
       mockEvents.push({
         id: doc.id,
@@ -53,8 +66,8 @@ export async function getAllEvents() {
         eventRm: data.eventRm,
         eventTime: data.eventTime.toDate?.() || new Date(data.eventTime),
         eventGeo: {
-          latitude: data.eventGeo.latitude,
-          longitude: data.eventGeo.longitude      }
+          latitude,
+          longitude      }
           
         
       })
