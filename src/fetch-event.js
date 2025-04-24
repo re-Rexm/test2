@@ -6,8 +6,11 @@
 import { db } from "./firebase.js"
 import {
   collection,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js"
+  query,
+  where,
+  getDocs,
+  GeoPoint
+} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 // Helper to parse geo array like ["39.7862° N", "84.0684° W"]
 //function parseGeo(geoArray) {
@@ -23,6 +26,21 @@ import {
 //  }
 //}
 //
+
+function processGeoData(geoData) {
+  if (geoData instanceof GeoPoint) {
+    return {
+      latitude: parseFloat(geoData.latitude),
+      longitude: parseFloat(geoData.longitude)
+    };
+  }
+  if (typeof geoData === 'object') {
+    return {
+      latitude: parseFloat(geoData.latitude || geoData.lat || 0),
+      longitude: parseFloat(geoData.longitude || geoData.lng || 0)
+    };
+  }
+}
 
 export async function getEventByTitle(eventTitle) {
   try {
@@ -45,7 +63,7 @@ export async function getAllEvents() {
 
     querySnapshot.forEach((doc) => {
       const data = doc.data()
-      const eventGeo = data.eventGeo;
+      const geoData = processGeoData(data.eventGeo);
       
 
       // Put data into an array
@@ -55,13 +73,7 @@ export async function getAllEvents() {
         eventBldg: data.eventBldg,
         eventRm: data.eventRm,
         eventTime: data.eventTime.toDate?.() || new Date(data.eventTime),
-        eventGeo: {
-          latitude: eventGeo instanceof GeoPoint 
-            ? eventGeo.latitude 
-            : eventGeo?.latitude,
-          longitude: eventGeo instanceof GeoPoint 
-            ? eventGeo.longitude 
-            : eventGeo?.longitude      }
+        eventGeo: geoData
           
         
       })
