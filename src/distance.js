@@ -35,7 +35,7 @@ AFRAME.registerComponent("distance-calc", {
     const cameraPos = new THREE.Vector3();
     this.cameraEl.object3D.getWorldPosition(cameraPos);
 
-    const distance = cameraPos.distanceTo(targetPos).toFixed(2);
+    const distance = cameraPos.manhattanDistanceTo(targetPos).toFixed(2);
     const text = `${this.targetName} is this way.\nDistance: ${distance}m`;
 
     this.textEl.setAttribute("value", text);
