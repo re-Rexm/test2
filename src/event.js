@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const color = event.eventName === eventTitle ? "#ffcc00" : "#3399ff";
     eventEl.setAttribute("material", { color: color });
     
+    console.log(`Placing event at: ${event.eventGeo.latitude}, ${event.eventGeo.longitude}`);
     eventEl.setAttribute("gps-new-entity-place", {
       latitude: event.eventGeo.latitude,
       longitude: event.eventGeo.longitude
@@ -48,13 +49,20 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Add to scene
     scene.appendChild(eventEl);
 
+    // Debug position after placement
+    setTimeout(() => {
+      const worldPos = new THREE.Vector3();
+      eventEl.object3D.getWorldPosition(worldPos);
+      console.log(`World position for ${event.id}:`, worldPos);
+    }, 1000)
+
     // Auto-select if it matches URL parameter
     if (event.eventName === eventTitle) {
       setTimeout(() => {
         if (eventEl.components["click-display-info"]) {
           eventEl.components["click-display-info"].onClick();
         }
-      }, 500);
+      }, 1500);
     }
   });
 });
