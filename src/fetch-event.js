@@ -40,6 +40,18 @@ function processGeoData(geoData) {
       longitude: parseFloat(geoData.longitude || geoData.lng || 0)
     };
   }
+  if (typeof geo.latitude === "function" && typeof geo.longitude === "function") {
+    return {
+      latitude: geo.latitude(),
+      longitude: geo.longitude()
+    };
+  }
+  if (typeof geo.latitude === "number" && typeof geo.longitude === "number") {
+    return {
+      latitude: geo.latitude,
+      longitude: geo.longitude
+    };
+  }
 }
 
 export async function getEventByTitle(eventTitle) {
