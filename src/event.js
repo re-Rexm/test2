@@ -11,7 +11,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   const urlParams = new URLSearchParams(window.location.search);
   const eventTitle = urlParams.get("eventName");
   const allEvents = await getAllEvents();
-
+  try {
+    const userPos = await getUserLocation();
+    console.log("User location:", userPos.coords.latitude, userPos.coords.longitude);
+    
+  }
+  catch (error) {
+    console.error("Failed to get user location:", error);
+  }
+  
   // Clear any existing events
   document.querySelectorAll("[click-display-info]").forEach(el => el.remove());
 
