@@ -28,6 +28,13 @@ import {
 //
 
 function processGeoData(geoData) {
+  if (Array.isArray(geoData) && geoData.length === 2) {
+    const [latitude, longitude] = geoData;
+    return {
+      latitude: typeof latitude === 'number' ? latitude : parseFloat(latitude),
+      longitude: typeof longitude === 'number' ? longitude : parseFloat(longitude),
+    };
+  }
   if (geoData instanceof GeoPoint) {
     return {
       latitude: parseFloat(geoData.latitude),
