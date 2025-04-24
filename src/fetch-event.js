@@ -186,7 +186,3 @@ export async function getAllEvents() {
 //export async function getEventByTitle(eventTitle) {
 //  return mockEvents.find(event => event.eventName === eventTitle) || null;
 //}
-
-export async function getAllEvents() {
-  return mockEvents;
-}
