@@ -74,3 +74,18 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 });
+
+
+function getUserLocation() {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      });
+    } else {
+      reject(new Error("Geolocation not supported"));
+    }
+  });
+}
