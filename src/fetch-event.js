@@ -28,6 +28,16 @@ import {
 //
 
 function processGeoData(geoData) {
+  if (typeof geoData === 'string') {
+    const parts = geoData.split(',');
+    if (parts.length === 2) {
+      const latitude = parseFloat(parts[0].trim());
+      const longitude = parseFloat(parts[1].trim());
+      if (!isNaN(latitude) && !isNaN(longitude)) {
+        return { latitude, longitude };
+      }
+    }
+  }  
   if (Array.isArray(geoData) && geoData.length === 2) {
     const [latitude, longitude] = geoData;
     return {
