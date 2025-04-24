@@ -4,6 +4,20 @@
 // place event location via coordinates, and apply values to the display info window.
 import { getEventByTitle, getAllEvents } from "./fetch-event.js";
 
+function getUserLocation() {
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      });
+    } else {
+      reject(new Error("Geolocation not supported"));
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async function () {
   const scene = document.querySelector("a-scene");
   const infoDisplay = document.getElementById("display-info-text");
@@ -76,16 +90,3 @@ document.addEventListener("DOMContentLoaded", async function () {
 });
 
 
-function getUserLocation() {
-  return new Promise((resolve, reject) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
-    } else {
-      reject(new Error("Geolocation not supported"));
-    }
-  });
-}
