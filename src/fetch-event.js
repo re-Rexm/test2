@@ -30,11 +30,11 @@ import {
 function processGeoData(geoData) {
   if (typeof geoData === 'string') {
     const parts = geoData.split(',');
-    console.error("Error finding event by 1", );
+    //console.error("Error finding event by 1", );
     if (parts.length === 2) {
       const latitude = parseFloat(parts[0].trim());
       const longitude = parseFloat(parts[1].trim());
-      console.error("Error finding event by 1", );
+      //console.error("Error finding event by 1", );
       if (!isNaN(latitude) && !isNaN(longitude)) {
         console.error("Error finding event by 1", );
         return { latitude, longitude };
@@ -42,7 +42,7 @@ function processGeoData(geoData) {
     }
   }  
   if (Array.isArray(geoData) && geoData.length === 2) {
-    console.error("Error finding event by 1", );
+    //console.error("Error finding event by 1", );
     const [latitude, longitude] = geoData;
     return {
       latitude: typeof latitude === 'number' ? latitude : parseFloat(latitude),
@@ -50,28 +50,28 @@ function processGeoData(geoData) {
     };
   }
   if (geoData instanceof GeoPoint) {
-    console.error("Error finding event by 1", );
+    //console.error("Error finding event by 1", );
     return {
       latitude: parseFloat(geoData.latitude),
       longitude: parseFloat(geoData.longitude)
     };
   }
   if (typeof geoData === 'object') {
-    console.error("Error finding event by 1", );
+    //console.error("Error finding event by 1", );
     return {
       latitude: parseFloat(geoData.latitude || geoData.lat || 0),
       longitude: parseFloat(geoData.longitude || geoData.lng || 0)
     };
   }
   if (typeof geo.latitude === "function" && typeof geo.longitude === "function") {
-    console.error("Error finding event by 1", );
+    //console.error("Error finding event by 1", );
     return {
       latitude: geo.latitude(),
       longitude: geo.longitude()
     };
   }
   if (typeof geo.latitude === "number" && typeof geo.longitude === "number") {
-    console.error("Error finding event by 1", );
+    //console.error("Error finding event by 1", );
     return {
       latitude: geo.latitude,
       longitude: geo.longitude
@@ -84,7 +84,7 @@ export async function getEventByTitle(eventTitle) {
     const events = await getAllEvents();
     return events.find(event => event.eventName === eventTitle) || null;
   } catch (error) {
-    console.error("Error finding event by title:", error);
+    //console.error("Error finding event by title:", error);
     return null;
   }
 }
